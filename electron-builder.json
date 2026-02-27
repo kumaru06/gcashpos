@@ -1,0 +1,34 @@
+{
+  "appId": "com.yourcompany.gcash-pos",
+  "productName": "GCash POS",
+  "directories": {
+    "buildResources": "build",
+    "output": "dist"
+  },
+  "files": [
+    "src/**/*",
+    "package.json"
+  ],
+  "win": {
+    "target": ["nsis"],
+    "icon": "build/icons/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true
+  }
+}
+{
+  "appId": "com.example.gcashpos",
+  "productName": "GCash POS",
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true
+  },
+  "directories": {
+    "output": "dist"
+  }
+}

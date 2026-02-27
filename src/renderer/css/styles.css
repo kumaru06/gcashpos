@@ -1,0 +1,154 @@
+:root{
+  --primary-1: #1E88E5;
+  --primary-2: #1565C0;
+  --accent: #22C55E;
+  --bg: #F4F6F9;
+  --card: #ffffff;
+}
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif}
+body.bg-gradient{min-height:100vh;background:linear-gradient(180deg,var(--primary-1),var(--primary-2));margin:0;display:flex;align-items:center;justify-content:center}
+.center-wrap{width:100%;max-width:760px;padding:40px}
+.card{background:var(--card);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.12);padding:32px;text-align:center}
+.brand{color:var(--primary-1);font-weight:700;margin-bottom:8px}
+.title{font-size:24px;margin:0 0 18px}
+.form input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid #eef2f6;margin-bottom:12px}
+.remember{display:flex;align-items:center;gap:8px;justify-content:flex-start;color:#6b7280;margin-bottom:12px}
+.btn{cursor:pointer;border:none;padding:12px 18px;border-radius:10px;background:linear-gradient(90deg,var(--primary-1),var(--primary-2));color:#fff;font-weight:600}
+.btn.small{padding:6px 8px}
+
+/* Dashboard layout */
+body.bg-light{background:var(--bg);margin:0;height:100vh}
+.app{display:flex;height:100vh}
+.sidebar{width:220px;background:#fff;border-right:1px solid #eef2f6;padding:20px;transition:transform .28s ease}
+.sidebar.collapse{transform:translateX(0)}
+.sidebar .logo{font-weight:700;color:var(--primary-2);margin-bottom:18px}
+.sidebar nav a{display:block;padding:10px;border-radius:8px;color:#374151;margin-bottom:6px}
+.sidebar nav{padding-left:8px}
+.sidebar nav a{display:block;padding:10px 12px;border-radius:8px;color:#374151;margin-bottom:6px;position:relative;transition:all .18s ease;border-left:6px solid transparent;padding-left:18px}
+.sidebar nav a:hover{background:rgba(30,88,229,0.06);cursor:pointer}
+.sidebar nav a.active{background:transparent !important;color:var(--primary-from);border-left-color:var(--primary-from);border-radius:0 8px 8px 0}
+.main-area{flex:1;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;padding:12px 20px;background:transparent}
+.spacer{flex:1}
+.content{padding:24px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.summary-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 8px 20px rgba(2,6,23,0.06);transition:transform .18s ease}
+.summary-card:hover{transform:translateY(-6px)}
+.summary-card .value{font-size:20px;font-weight:700}
+.charts{background:#fff;padding:16px;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,0.06)}
+
+/* Animations */
+.fade-in{animation:fadeIn .5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Responsive */
+@media (max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.sidebar{display:none}.main-area{padding:0}}
+:root{
+  --bg:#F4F6F9;
+  --primary-from:#1E88E5;
+  --primary-to:#1565C0;
+  --success:#22C55E;
+}
+html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;background:var(--bg);}
+.bg-gradient{background:linear-gradient(135deg,var(--primary-from),var(--primary-to));height:100vh;display:flex;align-items:center;justify-content:center}
+.login-container{width:420px}
+.login-card{background:#fff;padding:28px;border-radius:14px;box-shadow:0 8px 30px rgba(20,40,80,0.08);text-align:center}
+.logo{font-weight:700;color:var(--primary-from);font-size:22px;margin-bottom:8px}
+.login-card h2{margin:8px 0 18px}
+input{width:100%;padding:12px;border-radius:8px;border:1px solid #e7e9ee;margin-bottom:10px;outline:none}
+.remember{display:block;text-align:left;font-size:13px;color:#666}
+.btn-primary{width:100%;padding:12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--primary-from),var(--primary-to));color:#fff;font-weight:600;cursor:pointer}
+.btn, .btn-primary, .btn.small {cursor:pointer}
+.small-select{cursor:pointer}
+
+/* Button loading state */
+.btn-primary{position:relative;overflow:hidden}
+.btn-primary.loading{pointer-events:none;opacity:0.9}
+.btn-primary.loading::after{content:"";position:absolute;top:50%;left:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);border-top-color:#fff;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Shake animation for failed login */
+.shake{animation:shake .48s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shake{
+  10%,90%{transform:translateX(-1px)}
+  20%,80%{transform:translateX(2px)}
+  30%,50%,70%{transform:translateX(-4px)}
+  40%,60%{transform:translateX(4px)}
+}
+
+.app-shell{display:flex;height:100vh}
+.sidebar{width:220px;background:linear-gradient(180deg,#F7F9FB, #EEF3F8);padding:20px;border-right:1px solid rgba(0,0,0,0.03)}
+.main-content{flex:1;padding:20px;overflow:auto}
+.topbar{display:flex;align-items:center;padding:12px 20px;background:transparent;border-bottom:1px solid rgba(16,24,40,0.04)}
+.topbar .top-left{display:flex;align-items:center;gap:12px}
+.topbar .brand-title{font-size:18px;font-weight:700}
+.topbar .top-center{flex:1;display:flex;justify-content:center}
+.topbar .top-center .search{width:480px;padding:10px 14px;border-radius:10px;border:1px solid rgba(16,24,40,0.06)}
+.topbar .top-right{display:flex;align-items:center;gap:16px}
+.topbar .profile{display:flex;align-items:center;gap:8px;color:#374151}
+.topbar .profile img{width:28px;height:28px;border-radius:50%}
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:26px}
+.summary-cards .card{background:#fff;padding:20px;border-radius:14px;box-shadow:0 14px 40px rgba(20,30,80,0.06);display:flex;align-items:center;gap:16px}
+.summary-cards .icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;margin-right:12px;font-size:18px}
+.summary-cards .icon-blue{background:linear-gradient(90deg,var(--primary-from),var(--primary-to))}
+.summary-cards .icon-green{background:linear-gradient(90deg,#22C55E,#16A34A)}
+.summary-cards .meta{display:flex;flex-direction:column;align-items:flex-start}
+.summary-cards .meta .title{font-size:13px;color:#6b7280;margin-bottom:6px}
+.summary-cards .meta .value{font-size:20px;font-weight:700;color:#111827}
+
+/* small descriptor under value */
+.summary-cards .meta .sub{font-size:12px;color:#9CA3AF;margin-top:6px}
+.chart-card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 14px 40px rgba(20,30,80,0.06);margin-bottom:18px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.chart-card{display:flex;flex-direction:column;gap:12px}
+/* Ensure chart cards align their top edges: fixed toolbar height + canvas stretch */
+.chart-card{display:flex;flex-direction:column;gap:12px;justify-content:flex-start}
+.chart-card canvas{width:100%;height:auto!important;align-self:stretch}
+.chart-card .chart-toolbar{min-height:46px;display:flex;align-items:center}
+/* Specific sizing to match mockup: daily chart larger, monthly smaller */
+#dailyChart{height:320px!important}
+#monthlyChart{height:200px!important}
+/* Make chart cards share a consistent visual height and center the canvas vertically */
+.charts .chart-card{min-height:380px}
+.chart-card .chart-inner{flex:1;display:flex;align-items:center}
+.chart-card .chart-inner canvas{width:100%;height:auto!important}
+.chart-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.chart-header{font-weight:700;color:#0f172a}
+.chart-actions{display:flex;gap:8px;align-items:center}
+.small-select{padding:6px 8px;border-radius:8px;border:1px solid rgba(16,24,40,0.06)}
+.tx-table{width:100%;border-collapse:separate;background:#fff;border-radius:12px;box-shadow:0 14px 40px rgba(20,30,80,0.04);overflow:hidden}
+.tx-table thead{background:linear-gradient(180deg,#ffffff,#f8fafc)}
+.tx-table th{padding:14px 18px;text-align:left;color:#111827;font-weight:700}
+.tx-table td{padding:14px 18px;border-top:1px solid #f1f3f5;color:#374151}
+.tx-table .btn-view{cursor:pointer}
+.transactions-header{font-weight:700;margin:18px 0}
+
+.card-toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px}
+
+/* Animations */
+.fade-in{animation:fadeIn .45s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card:hover{transform:translateY(-6px);transition:transform .18s ease,box-shadow .18s ease}
+
+/* small responsive tweaks */
+@media (max-width:900px){.summary-cards{grid-template-columns:repeat(2,1fr)}.charts{flex-direction:column}}
+
+/* scale-in-left animation (for chart entrance) */
+@keyframes scale-in-left {
+  0% {
+    transform: scaleX(0.6) translateX(-30px);
+    transform-origin: left;
+    opacity: 0;
+  }
+  60% {
+    transform: scaleX(1.02) translateX(8px);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1) translateX(0);
+    transform-origin: left;
+    opacity: 1;
+  }
+}
+.scale-in-left{animation: scale-in-left 520ms cubic-bezier(.2,.9,.2,1) both}

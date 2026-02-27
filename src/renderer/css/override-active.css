@@ -1,0 +1,72 @@
+/* override-active.css — match the solid blue pill from the mockup */
+
+/* Use precise pill color and white text, remove any seams or borders */
+.sidebar nav a,
+.sidebar nav .nav-item,
+.sidebar a,
+.sidebar .nav-link {
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  border-left: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  will-change: background-color, color !important;
+}
+
+/* Active item: solid blue pill with white text */
+.sidebar nav a.active,
+.sidebar nav .nav-item.active,
+.sidebar a.active,
+.sidebar .nav-link.active {
+  background-color: #2B87FF !important;
+  color: #ffffff !important;
+  padding: 10px 16px !important;
+  margin: 6px 8px !important;
+  border-radius: 10px !important;
+  border-left: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Remove any pseudo-element indicators that create hard seams */
+.sidebar nav a::before,
+.sidebar nav .nav-item::before,
+.sidebar a::before,
+.sidebar .nav-link::before,
+.sidebar nav a.active::before,
+.sidebar nav .nav-item.active::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Hover state: lighter blue translucent pill */
+.sidebar nav a:hover,
+.sidebar nav .nav-item:hover,
+.sidebar a:hover,
+.sidebar .nav-link:hover {
+  background-color: rgba(43,135,255,0.08) !important;
+  color: #053a8a !important;
+}
+
+/* Click animation: quick scale/pulse to give tactile feedback */
+@keyframes sidebar-click-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  70% { transform: scale(0.995); }
+  100% { transform: scale(1); }
+}
+
+.sidebar nav a.clicked,
+.sidebar nav .nav-item.clicked,
+.sidebar a.clicked,
+.sidebar .nav-link.clicked {
+  animation: sidebar-click-pop 360ms cubic-bezier(.2,.9,.3,1) both !important;
+}
+
+/* Hovered variant (pointer enter) — slightly quicker, subtler scale */
+.sidebar nav a.hovered,
+.sidebar nav .nav-item.hovered,
+.sidebar a.hovered,
+.sidebar .nav-link.hovered {
+  animation: sidebar-click-pop 520ms cubic-bezier(.2,.9,.3,1) both !important;
+}

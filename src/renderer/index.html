@@ -71,27 +71,33 @@
           </section>
 
           <section class="charts">
+            <!-- New Daily Sales card (fresh markup) -->
             <div class="chart-card" id="dailyChartCard">
               <div class="chart-toolbar">
                 <div class="chart-header">Daily Sales</div>
+                <div class="chart-sub">Last 14 days</div>
                 <div class="chart-actions">
-                  <button class="btn small">+ Add</button>
-                  <select class="small-select"><option>Today</option><option>Last 7 days</option></select>
+                  <select class="small-select" id="dailyRange"><option>Last 7 days</option><option selected>Last 14 days</option><option>Last 30 days</option></select>
                 </div>
               </div>
               <div class="chart-inner">
-                <canvas id="dailyChart"></canvas>
+                <!-- New canvas for daily sales; same id used by JS -->
+                <canvas id="dailyChart" aria-label="Daily sales chart" role="img"></canvas>
               </div>
             </div>
-            <div class="chart-card">
+
+            <!-- New Monthly Sales card (fresh markup) -->
+            <div class="chart-card" id="monthlyChartCard">
               <div class="chart-toolbar">
                 <div class="chart-header">Monthly Sales</div>
+                <div class="chart-sub">Yearly trend</div>
                 <div class="chart-actions">
-                  <select class="small-select"><option>2024</option><option>2023</option></select>
+                  <select class="small-select" id="monthlyYear"><option selected>2024</option><option>2023</option></select>
                 </div>
               </div>
               <div class="chart-inner">
-                <canvas id="monthlyChart"></canvas>
+                <!-- New canvas for monthly sales; same id used by JS -->
+                <canvas id="monthlyChart" aria-label="Monthly sales chart" role="img"></canvas>
               </div>
             </div>
           </section>

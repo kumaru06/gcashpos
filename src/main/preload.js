@@ -11,7 +11,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getTransactions: (opts) => ipcRenderer.invoke('db:get-transactions', opts),
     addTransaction: (tx) => ipcRenderer.invoke('db:add-transaction', tx),
     updateTransaction: (id, updates) => ipcRenderer.invoke('db:update-transaction', id, updates),
-    deleteTransaction: (id) => ipcRenderer.invoke('db:delete-transaction', id)
+    deleteTransaction: (id) => ipcRenderer.invoke('db:delete-transaction', id),
+    deleteTestData: () => ipcRenderer.invoke('db:delete-test-data'),
+
   },
   sync: {
     getStatus: () => ipcRenderer.invoke('sync:status'),

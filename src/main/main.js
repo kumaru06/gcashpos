@@ -29,6 +29,7 @@ app.whenReady().then(async () => {
   try {
     await initDatabase()
     await authService.initAuth()
+
   } catch (err) {
     console.error('DB init failed', err)
   }

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS customers (
 -- transactions
 CREATE TABLE IF NOT EXISTS transactions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  transaction_id TEXT NOT NULL,
+  transaction_id TEXT NOT NULL UNIQUE,
   customer_id INTEGER,
   type TEXT,
   amount REAL,

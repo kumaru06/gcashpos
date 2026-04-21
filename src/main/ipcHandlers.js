@@ -40,6 +40,10 @@ function registerIpcHandlers () {
     return await db.deleteTransaction(id)
   })
 
+  ipcMain.handle('db:delete-test-data', async () => {
+    return await db.deleteTestData()
+  })
+
   ipcMain.handle('sync:status', async () => {
     return await syncService.getStatus()
   })

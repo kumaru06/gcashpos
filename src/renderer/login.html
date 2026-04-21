@@ -1,26 +1,38 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GCash POS - Login</title>
-    <link rel="stylesheet" href="./css/styles.css">
-  </head>
-  <body class="bg-gradient">
-    <div class="login-container fade-in">
-      <div class="login-card">
-        <div class="logo">GCash</div>
-        <h2>Sign in</h2>
-        <form id="loginForm">
-          <input id="username" name="username" placeholder="Username" required />
-          <input id="password" name="password" type="password" placeholder="Password" required />
-          <label class="remember"><input id="remember" name="remember" type="checkbox"/> Remember me</label>
-          <button type="submit" class="btn-primary">Sign in</button>
-        </form>
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GCash POS – Sign In</title>
+  <link rel="stylesheet" href="./css/styles.css"/>
+</head>
+<body class="lp">
+  <div class="lp-wrap">
+    <div class="lp-card">
+      <div class="lp-logo">
+        <img src="./assets/logo/gcashlogo.png" class="lp-img" alt="GCash Logo"/>
+        <p class="lp-sub">POS Transaction Record System</p>
       </div>
-    </div>
+      <h2 class="lp-title">Sign in to your account</h2>
 
-    <script src="./js/app.js"></script>
-  </body>
+      <form id="loginForm">
+        <div class="lp-fg">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" placeholder="Enter username" autocomplete="username" required/>
+        </div>
+        <div class="lp-fg">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" required/>
+        </div>
+        <label class="lp-rem">
+          <input id="remember" name="remember" type="checkbox"/> Remember me
+        </label>
+        <button type="submit" class="lp-btn">Sign in</button>
+        <div class="lp-err" id="loginErr"></div>
+      </form>
+    </div>
+  </div>
+  <script src="./js/app.js"></script>
+</body>
 </html>

@@ -18,39 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const res = await window.electronAPI.auth.login(u, p)
         console.log('login response', res)
+        const errEl = document.getElementById('loginErr')
         if (res && res.success) {
           window.location.href = './index.html'
         } else {
-          // show toast if available, otherwise fallback to alert
-          if (window.electronAPI && typeof window.electronAPI.toast === 'function') {
-            window.electronAPI.toast(res && res.error ? `Login failed: ${res.error}` : 'Login failed', 'error')
-          } else {
-            alert(res && res.error ? `Login failed: ${res.error}` : 'Login failed')
-          }
-          // shake form to indicate error, then reset inputs
+          const msg = (res && res.error) ? res.error : 'Invalid username or password'
+          if (errEl) errEl.textContent = msg
           form.classList.remove('shake')
-          // force reflow to restart animation
           void form.offsetWidth
           form.classList.add('shake')
           setTimeout(() => form.classList.remove('shake'), 600)
-          try {
-            if (pEl) {
-              pEl.value = ''
-              pEl.disabled = false
-              pEl.focus()
-            }
-            if (uEl) uEl.disabled = false
-          } catch (e) {
-            console.warn('Could not reset inputs after failed login', e)
-          }
+          if (pEl) { pEl.value = ''; pEl.disabled = false; pEl.focus(); }
+          if (uEl) uEl.disabled = false
         }
       } catch (err) {
         console.error('Login invoke error', err)
-        if (window.electronAPI && typeof window.electronAPI.toast === 'function') {
-          window.electronAPI.toast(`Login error: ${err && err.message ? err.message : err}`, 'error')
-        } else {
-          alert(`Login error: ${err && err.message ? err.message : err}`)
-        }
+        const errEl = document.getElementById('loginErr')
+        if (errEl) errEl.textContent = err && err.message ? err.message : 'Login error'
         if (pEl) { pEl.value = ''; pEl.disabled = false; pEl.focus(); }
       } finally {
         if (btn) { btn.disabled = false; btn.classList.remove('loading') }
@@ -113,6 +97,26 @@ document.addEventListener('DOMContentLoaded', () => {
       })
     })
   }
+
+  // ── PAGE NAVIGATION ──
+  window.showPage = function(name) {
+    document.querySelectorAll('.page').forEach(function(s){ s.classList.remove('active') })
+    var target = document.getElementById('page-' + name)
+    if (target) target.classList.add('active')
+    document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active') })
+    var nav = document.querySelector('.nav-item[data-page="' + name + '"]')
+    if (nav) nav.classList.add('active')
+    // page-specific hooks
+    if (name === 'daily-sales'   && typeof window._renderDailyPage   === 'function') window._renderDailyPage()
+    if (name === 'monthly-sales' && typeof window._renderMonthlyPage === 'function') window._renderMonthlyPage()
+  }
+
+  // wire sidebar nav data-page clicks
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(item) {
+    item.addEventListener('click', function() {
+      window.showPage(item.getAttribute('data-page'))
+    })
+  })
 
   // if on dashboard, boot it
   if (document.getElementById('dailyChart')) {

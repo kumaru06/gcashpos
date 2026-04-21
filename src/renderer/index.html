@@ -1,92 +1,596 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GCash POS - Dashboard</title>
-    <link rel="stylesheet" href="./css/styles.css">
-    <link rel="stylesheet" href="./css/override-active.css">
-  </head>
-  <body class="bg-light">
-    <div class="app">
-          <aside class="sidebar collapse" id="sidebar">
-        <div class="logo">GCash POS</div>
-        <nav>
-          <a class="active">Dashboard</a>
-          <a id="nav-daily-sales">Daily Sales</a>
-          <a>Monthly Sales</a>
-          <a>Customer Transactions</a>
-          <a>Reports</a>
-          <a>Settings</a>
-          <a>About</a>
-        </nav>
-      </aside>
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GCash POS – Dashboard</title>
+  <link rel="stylesheet" href="./css/styles.css"/>
+</head>
+<body>
 
-      <main class="main-area">
-        <header class="topbar">
-          <div class="top-left">
-            <button id="toggleSidebar" class="btn small">☰</button>
-            <div class="brand-title">Dashboard</div>
-          </div>
-          <div class="top-center">
-            <input class="search" placeholder="Search transactions, customers..." />
-          </div>
-          <div class="top-right">
-            <div id="syncStatus" class="sync">Offline</div>
-            <div class="profile">Deloslus Renger <img src="./assets/icons/customers.svg" alt="avatar"/></div>
-          </div>
-        </header>
+<div class="shell" id="shell">
 
-        <section class="content fade-in">
-          <section class="summary-cards">
-            <div class="card">
-              <div class="icon icon-blue"><img src="./assets/icons/sales.svg" alt="Sales"></div>
-              <div class="meta">
-                <div class="title">Total Sales</div>
-                <div class="value" id="totalSales">P0</div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="icon icon-blue"><img src="./assets/icons/month.svg" alt="This Month"></div>
-              <div class="meta">
-                <div class="title">Total Sales This Month</div>
-                <div class="value" id="totalMonth">P0</div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="icon icon-blue"><img src="./assets/icons/customers.svg" alt="Customers"></div>
-              <div class="meta">
-                <div class="title">Total Customers</div>
-                <div class="value" id="totalCustomers">0</div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="icon icon-green"><img src="./assets/icons/growth.svg" alt="Growth"></div>
-              <div class="meta">
-                <div class="title">Sales Growth</div>
-                <div class="value" id="salesGrowth">+0%</div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Charts removed per user request -->
-
-          <section class="transactions">
-            <div class="transactions-header">Recent Transactions</div>
-            <table class="tx-table" id="txTable">
-              <thead>
-                <tr><th>Transaction ID</th><th>Date</th><th>Customer</th><th>Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </section>
-        </section>
-      </main>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="./assets/logo/gcashlogo.png" class="logo-img" alt="GCash"/>
     </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <a class="nav-item active" data-page="dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="daily-sales">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Daily Sales</span>
+      </a>
+      <a class="nav-item" data-page="monthly-sales">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Monthly Sales</span>
+      </a>
+      <a class="nav-item" data-page="customers">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Customer Transactions</span>
+      </a>
+      <a class="nav-item" data-page="reports">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Reports</span>
+      </a>
+      <a class="nav-item" data-page="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+      <a class="nav-item" data-page="about">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>About</span>
+      </a>
+    </nav>
+  </aside>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="./js/app.js"></script>
-    <script src="./js/dashboard.js"></script>
-  </body>
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="icon-btn" id="sidebarToggle" title="Toggle Sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="search-wrap">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-inp" id="globalSearch" placeholder="Search transactions, customers…" type="search"/>
+      </div>
+      <div class="topbar-r">
+        <div class="sync-badge offline" id="syncBadge">
+          <span class="sync-dot"></span><span id="syncLabel">Offline</span>
+        </div>
+        <button class="icon-btn notif-btn" id="notifBtn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot" id="notifDot"></span>
+        </button>
+        <div class="profile-chip" id="profileChip">
+          <div class="avatar">DR</div>
+          <span class="profile-name">Deloslus Renger</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT PAGES -->
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-hdr">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-sub">Welcome back, Deloslus Renger</p>
+          </div>
+          <button class="btn btn-primary" id="addTxnBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Transaction
+          </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="cards-section-header">
+          <span class="cards-section-title">Overview</span>
+          <div class="period-toggle">
+            <button class="period-btn active" id="periodDaily" onclick="window.setPeriod('daily')">Daily</button>
+            <button class="period-btn" id="periodMonthly" onclick="window.setPeriod('monthly')">All Time</button>
+          </div>
+        </div>
+        <div class="cards-grid">
+          <div class="scard blue">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="lblCashIn">Cash In Today</div>
+              <div class="scard-val card-anim" id="totalCashIn">₱0</div>
+              <div class="scard-sub" id="cashInMonth" style="font-size:11px;color:#93C5FD;margin-top:2px"></div>
+            </div>
+          </div>
+          <div class="scard indigo">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="lblCashOut">Cash Out Today</div>
+              <div class="scard-val card-anim" id="totalCashOut">₱0</div>
+              <div class="scard-sub" id="cashOutMonth" style="font-size:11px;color:#C4B5FD;margin-top:2px"></div>
+            </div>
+          </div>
+
+          <div class="scard green">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="lblNet">Net Today</div>
+              <div class="scard-val card-anim" id="salesGrowth">₱0</div>
+            </div>
+          </div>
+
+          <div class="scard amber">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="lblServiceFee">Service Fee Today</div>
+              <div class="scard-val card-anim" id="totalServiceFee">₱0</div>
+              <div class="scard-sub" id="serviceFeeMonth" style="font-size:11px;color:#FCD34D;margin-top:2px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Cash In / Cash Out Banner -->
+        <div class="daily-banner">
+          <div class="daily-banner-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Today's Summary
+            <span class="daily-banner-date" id="todayDateLbl"></span>
+          </div>
+          <div class="daily-banner-cards">
+            <div class="daily-card daily-in">
+              <div class="daily-card-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </div>
+              <div class="daily-card-body">
+                <div class="daily-card-lbl">Cash In Today</div>
+                <div class="daily-card-val" id="dailyCashIn">₱0</div>
+                <div class="daily-card-count" id="dailyCashInCount">0 transactions</div>
+              </div>
+            </div>
+            <div class="daily-divider"></div>
+            <div class="daily-card daily-out">
+              <div class="daily-card-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+              </div>
+              <div class="daily-card-body">
+                <div class="daily-card-lbl">Cash Out Today</div>
+                <div class="daily-card-val" id="dailyCashOut">₱0</div>
+                <div class="daily-card-count" id="dailyCashOutCount">0 transactions</div>
+              </div>
+            </div>
+            <div class="daily-divider"></div>
+            <div class="daily-card daily-net">
+              <div class="daily-card-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="daily-card-body">
+                <div class="daily-card-lbl">Net Today</div>
+                <div class="daily-card-val" id="dailyNet">₱0</div>
+                <div class="daily-card-count" id="dailyNetNote">In − Out</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-hdr">
+              <div>
+                <div class="chart-title">Daily Sales</div>
+                <div class="chart-leg"><span class="leg-dot" style="background:#4C6EF5"></span> Cash In &nbsp;<span class="leg-dot" style="background:#EF4444"></span> Cash Out</div>
+              </div>
+              <div class="chart-acts">
+                <button class="btn btn-sm btn-primary" id="addDailyBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add
+                </button>
+                <button class="btn btn-sm btn-outline" id="todayBtn">Today ▾</button>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-hdr">
+              <div>
+                <div class="chart-title">Monthly Sales</div>
+                <div class="chart-leg"><span class="leg-dot" style="background:#4C6EF5"></span> Cash In &nbsp;<span class="leg-dot" style="background:#EF4444"></span> Cash Out</div>
+              </div>
+              <div class="chart-acts">
+                <select class="btn btn-sm btn-outline sel" id="yearSel"></select>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="tbl-card">
+          <div class="tbl-hdr">
+            <span class="tbl-title">Recent Transactions</span>
+            <div class="tbl-acts">
+              <button class="btn btn-sm btn-primary" id="addTxnBtn2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Transaction
+              </button>
+              <select class="btn btn-sm btn-outline sel" id="typeFilter">
+                <option value="">All Types</option>
+                <option value="cash_in">Cash In</option>
+                <option value="cash_out">Cash Out</option>
+              </select>
+              <button class="btn btn-sm btn-outline" id="refreshBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Refresh
+              </button>
+
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table id="txTable">
+              <thead>
+                <tr>
+                  <th>Transaction ID</th><th>Date</th><th>Customer Name</th>
+                  <th>Type</th><th>Amount</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="txBody"></tbody>
+            </table>
+          </div>
+          <div class="tbl-foot">
+            <span class="tbl-info" id="tblInfo">Showing 0 of 0</span>
+            <div class="pager" id="pager"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- OTHER PAGES -->
+      <!-- ── DAILY SALES ── -->
+      <section class="page" id="page-daily-sales">
+        <div class="page-hdr">
+          <div>
+            <h1 class="page-title">Daily Sales</h1>
+            <p class="page-sub" id="dsSub">Today's breakdown</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn btn-sm btn-outline" id="dsPrevDay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <input type="date" id="dsDatePicker" class="ds-date-inp"/>
+            <button class="btn btn-sm btn-outline" id="dsNextDay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="btn btn-sm btn-outline" id="dsTodayBtn">Today</button>
+          </div>
+        </div>
+
+        <!-- Summary cards for selected day -->
+        <div class="cards-grid">
+          <div class="scard blue">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl">Cash In</div>
+              <div class="scard-val" id="dsCashIn">₱0</div>
+              <div class="scard-sub" id="dsCashInCount" style="font-size:11px;color:#93C5FD;margin-top:2px">0 transactions</div>
+            </div>
+          </div>
+          <div class="scard indigo">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl">Cash Out</div>
+              <div class="scard-val" id="dsCashOut">₱0</div>
+              <div class="scard-sub" id="dsCashOutCount" style="font-size:11px;color:#C4B5FD;margin-top:2px">0 transactions</div>
+            </div>
+          </div>
+          <div class="scard green">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl">Net (In + Out)</div>
+              <div class="scard-val" id="dsNet">₱0</div>
+              <div class="scard-sub" id="dsTxnTotal" style="font-size:11px;color:#86EFAC;margin-top:2px">0 total transactions</div>
+            </div>
+          </div>
+          <div class="scard amber">
+            <div class="scard-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="scard-info">
+              <div class="scard-lbl">Service Fee</div>
+              <div class="scard-val" id="dsServiceFee">₱0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 14-day trend chart -->
+        <div class="chart-card" style="margin-bottom:20px;">
+          <div class="chart-hdr">
+            <span class="chart-title">14-Day Trend</span>
+            <span class="chart-note" id="dsChartNote" style="font-size:12px;color:#94a3b8;">Click a bar to jump to that day</span>
+          </div>
+          <div class="chart-body" style="height:200px;">
+            <canvas id="dsChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Transactions for selected day -->
+        <div class="tbl-card">
+          <div class="tbl-hdr">
+            <span class="tbl-title" id="dsTblTitle">Transactions — Today</span>
+            <div class="tbl-acts">
+              <input class="search-inp" id="dsSearch" placeholder="Search ID, customer…" type="search" style="width:200px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--card);color:var(--text);outline:none"/>
+              <select class="btn btn-sm btn-outline sel" id="dsTypeFilter">
+                <option value="">All Types</option>
+                <option value="cash_in">Cash In</option>
+                <option value="cash_out">Cash Out</option>
+              </select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction ID</th><th>Time</th><th>Customer Name</th>
+                  <th>Type</th><th>Amount</th><th>Service Fee</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dsBody"></tbody>
+            </table>
+          </div>
+          <div class="tbl-foot">
+            <span class="tbl-info" id="dsInfo">Showing 0 of 0</span>
+            <div class="pager" id="dsPager"></div>
+          </div>
+        </div>
+      </section>
+      <!-- ── MONTHLY SALES ── -->
+      <section class="page" id="page-monthly-sales">
+        <div class="page-hdr">
+          <div>
+            <h1 class="page-title">Monthly Sales</h1>
+            <p class="page-sub" id="msSub">Monthly breakdown</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn btn-sm btn-outline" id="msPrevYear">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <select id="msYearSel" class="ds-date-inp" style="min-width:90px;"></select>
+            <button class="btn btn-sm btn-outline" id="msNextYear">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Month selector pills -->
+        <div class="ms-month-tabs" id="msMonthTabs"></div>
+
+        <!-- Summary cards for selected month -->
+        <div class="cards-grid">
+          <div class="scard blue">
+            <div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="msLblIn">Cash In — Jan</div>
+              <div class="scard-val" id="msCashIn">₱0</div>
+              <div class="scard-sub" id="msCashInCount" style="font-size:11px;color:#93C5FD;margin-top:2px">0 transactions</div>
+            </div>
+          </div>
+          <div class="scard indigo">
+            <div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="msLblOut">Cash Out — Jan</div>
+              <div class="scard-val" id="msCashOut">₱0</div>
+              <div class="scard-sub" id="msCashOutCount" style="font-size:11px;color:#C4B5FD;margin-top:2px">0 transactions</div>
+            </div>
+          </div>
+          <div class="scard green">
+            <div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="msLblNet">Net — Jan</div>
+              <div class="scard-val" id="msNet">₱0</div>
+              <div class="scard-sub" id="msTxnTotal" style="font-size:11px;color:#86EFAC;margin-top:2px">0 total transactions</div>
+            </div>
+          </div>
+          <div class="scard amber">
+            <div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div class="scard-info">
+              <div class="scard-lbl" id="msLblSF">Service Fee — Jan</div>
+              <div class="scard-val" id="msServiceFee">₱0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full-year chart -->
+        <div class="chart-card" style="margin-bottom:20px;">
+          <div class="chart-hdr">
+            <span class="chart-title" id="msChartTitle">Year Overview</span>
+            <span style="font-size:12px;color:#94a3b8;">Click a bar to view that month's transactions</span>
+          </div>
+          <div class="chart-body" style="height:200px;">
+            <canvas id="msChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Transactions for selected month -->
+        <div class="tbl-card">
+          <div class="tbl-hdr">
+            <span class="tbl-title" id="msTblTitle">Transactions — Jan</span>
+            <div class="tbl-acts">
+              <input class="search-inp" id="msSearch" placeholder="Search ID, customer…" type="search" style="width:200px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--card);color:var(--text);outline:none"/>
+              <select class="btn btn-sm btn-outline sel" id="msTypeFilter">
+                <option value="">All Types</option>
+                <option value="cash_in">Cash In</option>
+                <option value="cash_out">Cash Out</option>
+              </select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction ID</th><th>Date</th><th>Customer Name</th>
+                  <th>Type</th><th>Amount</th><th>Service Fee</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="msBody"></tbody>
+            </table>
+          </div>
+          <div class="tbl-foot">
+            <span class="tbl-info" id="msInfo">Showing 0 of 0</span>
+            <div class="pager" id="msPager"></div>
+          </div>
+        </div>
+      </section>
+      <section class="page" id="page-customers">
+        <div class="page-hdr">
+          <div>
+            <h1 class="page-title">Customer Transactions</h1>
+            <p class="page-sub">All transaction records</p>
+          </div>
+          <button class="btn btn-primary" id="ctAddBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Transaction
+          </button>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-hdr">
+            <span class="tbl-title">All Transactions</span>
+            <div class="tbl-acts">
+              <input class="search-inp" id="ctSearch" placeholder="Search ID, customer…" type="search" style="width:200px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--card);color:var(--text);outline:none"/>
+              <select class="btn btn-sm btn-outline sel" id="ctTypeFilter">
+                <option value="">All Types</option>
+                <option value="cash_in">Cash In</option>
+                <option value="cash_out">Cash Out</option>
+              </select>
+              <select class="btn btn-sm btn-outline sel" id="ctStatusFilter">
+                <option value="">All Status</option>
+                <option value="success">Success</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+              <button class="btn btn-sm btn-outline" id="ctRefreshBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table id="ctTable">
+              <thead>
+                <tr>
+                  <th>Transaction ID</th><th>Date</th><th>Customer Name</th>
+                  <th>Type</th><th>Amount</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ctBody"></tbody>
+            </table>
+          </div>
+          <div class="tbl-foot">
+            <span class="tbl-info" id="ctInfo">Showing 0 of 0</span>
+            <div class="pager" id="ctPager"></div>
+          </div>
+        </div>
+      </section>
+      <section class="page" id="page-reports">
+        <div class="page-hdr"><h1 class="page-title">Reports</h1></div>
+        <div class="ph-page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Reports — coming soon</p></div>
+      </section>
+      <section class="page" id="page-settings">
+        <div class="page-hdr"><h1 class="page-title">Settings</h1></div>
+        <div class="ph-page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><p>Settings — coming soon</p></div>
+      </section>
+      <section class="page" id="page-about">
+        <div class="page-hdr"><h1 class="page-title">About</h1></div>
+        <div class="ph-page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>GCash POS v0.1.0 &mdash; Hybrid Offline+Online Transaction Record System</p></div>
+      </section>
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+</div><!-- /shell -->
+
+<!-- ADD TRANSACTION MODAL -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">Add Transaction</span>
+      <button class="modal-x" id="addClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addForm" autocomplete="off">
+        <div class="frow">
+          <div class="fg"><label>Customer Name</label><input id="fCustomer" placeholder="e.g. Albert Goopio" required/></div>
+          <div class="fg"><label>Type</label>
+            <select id="fType"><option value="cash_in">Cash In</option><option value="cash_out">Cash Out</option></select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label>Amount (₱)</label><input id="fAmount" type="number" placeholder="0.00" min="0" step="0.01" required/></div>
+          <div class="fg"><label>Service Fee (₱)</label><input id="fServiceFee" type="number" placeholder="0.00" min="0" step="0.01" value="0"/></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label>Status</label>
+            <select id="fStatus"><option value="success">Success</option><option value="pending">Pending</option><option value="failed">Failed</option></select>
+          </div>
+          <div class="fg"><label>Transaction ID</label><input id="fTxnId" placeholder="TXN-XXXX"/></div>
+        </div>
+        <div class="modal-ftr">
+          <button type="button" class="btn btn-outline" id="addCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW TRANSACTION MODAL -->
+<div class="overlay" id="viewOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">Transaction Details</span>
+      <button class="modal-x" id="viewClose">&times;</button>
+    </div>
+    <div class="modal-body" id="viewBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal confirm-modal">
+    <div class="confirm-ico" id="confirmIco">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <div class="confirm-title" id="confirmTitle">Delete Transaction?</div>
+    <div class="confirm-msg" id="confirmMsg">This action cannot be undone.</div>
+    <div class="confirm-ftr">
+      <button class="btn btn-outline" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Chart.js from local node_modules -->
+<script src="../../node_modules/chart.js/dist/chart.umd.min.js"></script>
+<script src="./js/app.js"></script>
+<script src="./js/dashboard.js"></script>
+</body>
 </html>

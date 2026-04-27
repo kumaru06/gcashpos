@@ -34,8 +34,8 @@ app.whenReady().then(async () => {
     console.error('DB init failed', err)
   }
 
-  let win = createWindow()
   registerIpcHandlers()
+  let win = createWindow()
 
   // Live-reload in development: watch renderer files and reload window on change
   if (!app.isPackaged) {

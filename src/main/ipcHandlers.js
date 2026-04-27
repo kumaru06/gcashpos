@@ -2,8 +2,11 @@ const { ipcMain } = require('electron')
 const authService = require('./authService')
 const db = require('./database')
 const syncService = require('./syncService')
+const emailService = require('./emailService')
 
 function registerIpcHandlers () {
+  try { ipcMain.removeHandler('email:send-report') } catch (e) {}
+
   ipcMain.handle('auth:login', async (event, { username, password }) => {
     try {
       console.log('auth:login attempt for', username)
@@ -50,6 +53,15 @@ function registerIpcHandlers () {
 
   ipcMain.handle('sync:force', async () => {
     return await syncService.forceSync()
+  })
+
+  ipcMain.handle('email:send-report', async (event, payload) => {
+    try {
+      return await emailService.sendReportEmail(payload)
+    } catch (err) {
+      console.error('email:send-report error', err)
+      return { success: false, error: err.message }
+    }
   })
 }
 

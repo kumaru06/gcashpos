@@ -5,6 +5,9 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>GCash POS – Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="./css/styles.css"/>
 </head>
 <body>
@@ -68,10 +71,29 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="notif-dot" id="notifDot"></span>
         </button>
+        <div class="top-dropdown notif-menu" id="notifMenu">
+          <div class="drop-hdr">
+            <strong>Notifications</strong>
+            <button class="drop-link" id="notifClearBtn">Clear</button>
+          </div>
+          <div class="drop-list" id="notifList"></div>
+        </div>
         <div class="profile-chip" id="profileChip">
-          <div class="avatar">DR</div>
-          <span class="profile-name">Deloslus Renger</span>
+          <div class="avatar" id="profileAvatar">--</div>
+          <span class="profile-name" id="profileNameTop">Loading profile…</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="top-dropdown profile-menu" id="profileMenu">
+          <div class="profile-menu-head">
+            <div class="avatar big" id="profileAvatarMenu">--</div>
+            <div>
+              <strong id="profileNameMenu">Loading profile…</strong>
+              <span id="profileRoleMenu">POS Administrator</span>
+            </div>
+          </div>
+          <button class="drop-action" id="profileSettingsBtn">Profile & Settings</button>
+          <button class="drop-action" id="profileAboutBtn">About GCash POS</button>
+          <button class="drop-action danger" id="profileLogoutBtn">Logout</button>
         </div>
       </div>
     </header>
@@ -84,7 +106,7 @@
         <div class="page-hdr">
           <div>
             <h1 class="page-title">Dashboard</h1>
-            <p class="page-sub">Welcome back, Deloslus Renger</p>
+            <p class="page-sub">Loading profile…</p>
           </div>
           <button class="btn btn-primary" id="addTxnBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -124,7 +146,7 @@
 
           <div class="scard green">
             <div class="scard-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg>
             </div>
             <div class="scard-info">
               <div class="scard-lbl" id="lblNet">Net Today</div>
@@ -176,7 +198,7 @@
             <div class="daily-divider"></div>
             <div class="daily-card daily-net">
               <div class="daily-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg>
               </div>
               <div class="daily-card-body">
                 <div class="daily-card-lbl">Net Today</div>
@@ -301,7 +323,7 @@
           </div>
           <div class="scard green">
             <div class="scard-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg>
             </div>
             <div class="scard-info">
               <div class="scard-lbl">Net (In + Out)</div>
@@ -401,7 +423,7 @@
             </div>
           </div>
           <div class="scard green">
-            <div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="scard-ico"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg></div>
             <div class="scard-info">
               <div class="scard-lbl" id="msLblNet">Net — Jan</div>
               <div class="scard-val" id="msNet">₱0</div>
@@ -509,16 +531,97 @@
         </div>
       </section>
       <section class="page" id="page-reports">
-        <div class="page-hdr"><h1 class="page-title">Reports</h1></div>
-        <div class="ph-page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Reports — coming soon</p></div>
+        <div class="page-hdr">
+          <div>
+            <h1 class="page-title">Reports</h1>
+            <p class="page-sub">Generate summaries, review totals, export CSV, and print reports.</p>
+          </div>
+          <div class="tbl-acts">
+            <button class="btn btn-outline" id="reportPrintBtn">Print</button>
+            <button class="btn btn-outline" id="reportEmailBtn">Email Report</button>
+            <button class="btn btn-primary" id="reportExportBtn">Export CSV</button>
+          </div>
+        </div>
+        <div class="report-toolbar">
+          <div class="fg"><label>Report Type</label><select id="reportType"><option value="daily">Daily</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="custom">Custom Range</option></select></div>
+          <div class="fg"><label>From</label><input type="date" id="reportFrom"/></div>
+          <div class="fg"><label>To</label><input type="date" id="reportTo"/></div>
+          <div class="fg"><label>Status</label><select id="reportStatus"><option value="success">Success Only</option><option value="">All Status</option><option value="pending">Pending</option><option value="failed">Failed</option></select></div>
+          <div class="fg"><label>Email To</label><input type="email" id="reportEmail" placeholder="receiver@email.com"/></div>
+          <div class="fg"><label>&nbsp;</label><button class="btn btn-primary" id="reportRunBtn">Generate</button></div>
+        </div>
+        <div class="cards-grid report-grid">
+          <div class="scard blue"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="scard-info"><div class="scard-lbl">Cash In</div><div class="scard-val" id="reportCashIn">₱0</div></div></div>
+          <div class="scard indigo"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div class="scard-info"><div class="scard-lbl">Cash Out</div><div class="scard-val" id="reportCashOut">₱0</div></div></div>
+          <div class="scard green"><div class="scard-ico"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg></div><div class="scard-info"><div class="scard-lbl">Net (In + Out)</div><div class="scard-val" id="reportNet">₱0</div></div></div>
+          <div class="scard amber"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="scard-info"><div class="scard-lbl">Service Fee</div><div class="scard-val" id="reportServiceFee">₱0</div></div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card report-chart-card"><div class="chart-hdr"><div><div class="chart-title" id="reportChartTitle">Report Overview</div><div class="chart-leg report-legend"><span><i style="background:#4C6EF5"></i> Cash In</span><span><i style="background:#EF4444"></i> Cash Out</span></div></div><div class="report-range-pill" id="reportRangePill">Today</div></div><div class="chart-wrap report-chart-wrap"><canvas id="reportChart"></canvas></div></div>
+          <div class="chart-card"><div class="chart-hdr"><div><div class="chart-title">Breakdown</div><div class="chart-leg">Transaction count and status split</div></div></div><div class="report-breakdown" id="reportBreakdown"></div></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-hdr"><span class="tbl-title" id="reportTableTitle">Report Transactions</span><span class="tbl-info" id="reportInfo">0 records</span></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Transaction ID</th><th>Date</th><th>Customer</th><th>Type</th><th>Amount</th><th>Service Fee</th><th>Status</th></tr></thead><tbody id="reportBody"></tbody></table></div>
+        </div>
       </section>
       <section class="page" id="page-settings">
-        <div class="page-hdr"><h1 class="page-title">Settings</h1></div>
-        <div class="ph-page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><p>Settings — coming soon</p></div>
+        <div class="page-hdr">
+          <div><h1 class="page-title">Settings</h1><p class="page-sub">Customize business details, profile, display, and sync behavior.</p></div>
+          <button class="btn btn-primary" id="settingsSaveBtn">Save Settings</button>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Business Information</h3>
+            <div class="frow"><div class="fg"><label>Business Name</label><input id="setBusinessName" placeholder="GCash POS"/></div><div class="fg"><label>Branch / Location</label><input id="setBranch" placeholder="Main Branch"/></div></div>
+            <div class="frow"><div class="fg"><label>Receipt Footer</label><input id="setReceiptFooter" placeholder="Thank you for your transaction"/></div><div class="fg"><label>Default Service Fee</label><input id="setDefaultFee" type="number" min="0" step="0.01" placeholder="0.00"/></div></div>
+          </div>
+          <div class="settings-card">
+            <h3>Profile</h3>
+            <div class="profile-photo-row">
+              <div class="avatar photo-preview" id="profilePhotoPreview">DR</div>
+              <div>
+                <input id="profilePhotoInput" type="file" accept="image/*" hidden/>
+                <button class="btn btn-outline" id="profilePhotoBtn">Upload & Crop Photo</button>
+                <button class="btn btn-outline" id="profilePhotoRemoveBtn">Remove Photo</button>
+                <p class="settings-note">Upload a square profile picture. You can crop before saving.</p>
+              </div>
+            </div>
+            <div class="frow"><div class="fg"><label>Full Name</label><input id="setProfileName" placeholder="Your full name"/></div><div class="fg"><label>Role</label><input id="setProfileRole" placeholder="POS Administrator"/></div></div>
+            <div class="frow"><div class="fg"><label>Email</label><input id="setProfileEmail" type="email" placeholder="admin@gcashpos.local"/></div><div class="fg"><label>Initials</label><input id="setProfileInitials" maxlength="3" placeholder="DR"/></div></div>
+          </div>
+          <div class="settings-card">
+            <h3>Preferences</h3>
+            <div class="settings-switch"><div><strong>Compact Tables</strong><span>Reduce row spacing in transaction tables.</span></div><label class="switch"><input type="checkbox" id="setCompact"><span></span></label></div>
+            <div class="settings-switch"><div><strong>Show Notification Dot</strong><span>Display alerts for pending transactions and offline sync.</span></div><label class="switch"><input type="checkbox" id="setNotifDot"><span></span></label></div>
+            <div class="settings-switch"><div><strong>Auto Refresh</strong><span>Refresh dashboard data periodically.</span></div><label class="switch"><input type="checkbox" id="setAutoRefresh"><span></span></label></div>
+          </div>
+          <div class="settings-card">
+            <h3>Maintenance</h3>
+            <p class="settings-note">Use these tools for local app maintenance.</p>
+            <div class="tbl-acts"><button class="btn btn-outline" id="settingsRefreshBtn">Refresh Data</button><button class="btn btn-outline" id="settingsResetBtn">Reset Settings</button><button class="btn btn-outline" id="settingsSyncBtn">Force Sync</button></div>
+            <div class="settings-status" id="settingsStatus">Ready</div>
+          </div>
+          <div class="settings-card">
+            <h3>Email Sending (SMTP)</h3>
+            <p class="settings-note">Required for sending reports directly. For Gmail, use host <strong>smtp.gmail.com</strong>, port <strong>587</strong>, username as your Gmail address, and an App Password.</p>
+            <div class="frow"><div class="fg"><label>SMTP Host</label><input id="setSmtpHost" placeholder="smtp.gmail.com"/></div><div class="fg"><label>SMTP Port</label><input id="setSmtpPort" type="number" placeholder="587"/></div></div>
+            <div class="frow"><div class="fg"><label>SMTP Username</label><input id="setSmtpUser" type="email" placeholder="your-email@gmail.com"/></div><div class="fg"><label>From Email</label><input id="setSmtpFrom" type="email" placeholder="your-email@gmail.com"/></div></div>
+            <div class="frow"><div class="fg"><label>SMTP App Password</label><input id="setSmtpPass" type="password" placeholder="App password"/></div><div class="fg"><label>Secure SSL</label><select id="setSmtpSecure"><option value="false">No (587 TLS)</option><option value="true">Yes (465 SSL)</option></select></div></div>
+          </div>
+        </div>
       </section>
       <section class="page" id="page-about">
-        <div class="page-hdr"><h1 class="page-title">About</h1></div>
-        <div class="ph-page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>GCash POS v0.1.0 &mdash; Hybrid Offline+Online Transaction Record System</p></div>
+        <div class="page-hdr"><div><h1 class="page-title">About</h1><p class="page-sub">Application information and quick help.</p></div></div>
+        <div class="about-hero">
+          <img src="./assets/logo/gcashlogo.png" alt="GCash"/>
+          <div><h2>GCash POS</h2><p>Hybrid Offline + Online Transaction Record System</p><span id="aboutVersion">Version 0.1.0</span></div>
+        </div>
+        <div class="about-grid">
+          <div class="settings-card"><h3>Features</h3><ul class="about-list"><li>Daily and monthly sales tracking</li><li>Cash in, cash out, and service fee summaries</li><li>Customer transaction history</li><li>CSV report export and print-ready reports</li><li>Offline-first local database</li></ul></div>
+          <div class="settings-card"><h3>System Status</h3><div class="about-kv"><span>Sync</span><strong id="aboutSyncStatus">Checking…</strong></div><div class="about-kv"><span>Total Transactions</span><strong id="aboutTxnCount">0</strong></div><div class="about-kv"><span>Current Date</span><strong id="aboutDate">—</strong></div></div>
+          <div class="settings-card"><h3>Support</h3><p class="settings-note">For issues, verify your database records, sync connection, and report filters first.</p><div class="tbl-acts"><button class="btn btn-outline" id="aboutOpenReports">Open Reports</button><button class="btn btn-outline" id="aboutOpenSettings">Open Settings</button></div></div>
+        </div>
       </section>
 
     </div><!-- /content -->
@@ -581,6 +684,31 @@
     <div class="confirm-ftr">
       <button class="btn btn-outline" id="confirmCancel">Cancel</button>
       <button class="btn btn-danger" id="confirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE PHOTO CROP MODAL -->
+<div class="overlay" id="cropOverlay">
+  <div class="modal crop-modal">
+    <div class="modal-hdr">
+      <span class="modal-title">Crop Profile Photo</span>
+      <button class="modal-x" id="cropClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="crop-stage">
+        <canvas id="cropCanvas" width="320" height="320"></canvas>
+        <div class="crop-mask"></div>
+      </div>
+      <div class="crop-controls">
+        <label>Zoom</label><input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1"/>
+        <label>X</label><input type="range" id="cropX" min="-160" max="160" step="1" value="0"/>
+        <label>Y</label><input type="range" id="cropY" min="-160" max="160" step="1" value="0"/>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-outline" id="cropCancel">Cancel</button>
+        <button class="btn btn-primary" id="cropApply">Use Photo</button>
+      </div>
     </div>
   </div>
 </div>

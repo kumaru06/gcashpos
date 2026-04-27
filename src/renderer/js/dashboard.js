@@ -9,6 +9,7 @@
   var searchQ = ''
   var dChart = null
   var mChart = null
+  var reportChart = null
   // Customer page state
   var cPage = 1
   var cTypeFilter = ''
@@ -47,6 +48,41 @@
     }, 3200)
   }
   window._toast = toast
+
+  function getTxnNotifications(){
+    try { return JSON.parse(localStorage.getItem('gcashPosNotifications') || '[]') }
+    catch(e){ return [] }
+  }
+
+  function saveTxnNotifications(items){
+    localStorage.setItem('gcashPosNotifications', JSON.stringify(items.slice(0, 60)))
+  }
+
+  function addTxnNotification(tx, action){
+    if(!tx) return
+    var items = getTxnNotifications()
+    var amount = Number(tx.amount)||0
+    var typeLabel = tx.type === 'cash_in' ? 'Cash In' : tx.type === 'cash_out' ? 'Cash Out' : 'Transaction'
+    items.unshift({
+      id: 'notif_' + Date.now(),
+      txId: String(tx.id || ''),
+      transactionId: tx.transaction_id || '—',
+      title: action || 'Transaction added',
+      text: tx.notificationText || ((tx.customer_name || 'Walk-in') + ' • ' + typeLabel + (amount ? ' • ₱' + money(amount) : '')),
+      createdAt: new Date().toISOString(),
+      snapshot: tx
+    })
+    saveTxnNotifications(items)
+    if(typeof window._updateNotifications === 'function') window._updateNotifications()
+  }
+
+  function showActionConfirm(title, msg, onOk, okLabel, okClass){
+    if(typeof window._showConfirm === 'function'){
+      window._showConfirm(title, msg, onOk, okLabel, okClass)
+    } else if(window.confirm(title + '\n\n' + msg)){
+      onOk()
+    }
+  }
 
   // ── SUMMARY ──
   var _summaryData = {}
@@ -378,7 +414,7 @@
         + '<td>'+typeChip(r.type)+'</td>'
         + '<td><strong>&#8369;'+money(r.amount)+'</strong></td>'
         + '<td>'+statusPill(r.status)+'</td>'
-        + '<td style="display:flex;gap:6px;align-items:center;">'
+        + '<td class="row-actions">'
         + '<button class="view-btn" data-row="'+enc+'">'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>'
         + ' View</button>'
@@ -443,7 +479,7 @@
         + '<td>'+typeChip(r.type)+'</td>'
         + '<td><strong>&#8369;'+money(r.amount)+'</strong></td>'
         + '<td>'+statusPill(r.status)+'</td>'
-        + '<td style="display:flex;gap:6px;align-items:center;">'
+        + '<td class="row-actions">'
         + '<button class="view-btn" data-row="'+enc+'">'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>'
         + ' View</button>'
@@ -548,7 +584,7 @@
     showSkeletons()
     try{
       if(window.electronAPI && window.electronAPI.db){
-        var data = await window.electronAPI.db.getTransactions({page:1, pageSize:500})
+        var data = await window.electronAPI.db.getTransactions({page:1, pageSize:5000})
         rows = (data && data.rows && data.rows.length) ? data.rows : sampleRows()
       } else {
         rows = sampleRows()
@@ -564,11 +600,13 @@
     renderRows()
     cPage = 1
     renderCustomerRows()
+    if(typeof window._refreshAuxPages === 'function') window._refreshAuxPages()
   }
 
   // ── DELETE ──
   async function deleteRow(id){
     try{
+      var deletedRow = rows.find(function(r){ return String(r.id) === String(id) })
       if(window.electronAPI && window.electronAPI.db){
         await window.electronAPI.db.deleteTransaction(id)
       }
@@ -579,6 +617,8 @@
       buildDailyChart(rows)
       buildMonthlyChart(rows, parseInt($('yearSel') ? $('yearSel').value : new Date().getFullYear()))
       loadSummary()
+      if(deletedRow) addTxnNotification(deletedRow, 'Transaction deleted')
+      if(typeof window._refreshAuxPages === 'function') window._refreshAuxPages()
       toast('Transaction deleted','success')
     }catch(e){
       console.error('delete',e)
@@ -629,6 +669,7 @@
 
   async function updateRowStatus(r, newStatus){
     try{
+      newStatus = (newStatus || '').toLowerCase()
       if(window.electronAPI && window.electronAPI.db){
         await window.electronAPI.db.updateTransaction(r.id, {
           status: newStatus,
@@ -637,12 +678,22 @@
       }
       // update in-memory
       var found = rows.find(function(x){ return String(x.id)===String(r.id) })
-      if(found){ found.status = newStatus; found.sync_status = newStatus === 'success' ? 'synced' : 'pending' }
+      if(found){
+        found.status = newStatus
+        found.sync_status = newStatus === 'success' ? 'synced' : 'pending'
+      }
+      r.status = newStatus
+      r.sync_status = newStatus === 'success' ? 'synced' : 'pending'
       closeOverlay('viewOverlay')
       renderRows()
-      loadSummary()
+      renderCustomerRows()
       buildDailyChart(rows)
       buildMonthlyChart(rows, parseInt($('yearSel') ? $('yearSel').value : new Date().getFullYear()))
+      await loadSummary()
+      if(typeof window._renderDailyPage === 'function') window._renderDailyPage()
+      if(typeof window._renderMonthlyPage === 'function') window._renderMonthlyPage()
+      addTxnNotification(found || r, 'Transaction marked ' + newStatus)
+      if(typeof window._refreshAuxPages === 'function') window._refreshAuxPages()
       toast('Status updated to ' + newStatus, 'success')
     }catch(e){
       console.error('updateStatus', e)
@@ -680,6 +731,8 @@
       buildDailyChart(rows)
       buildMonthlyChart(rows, new Date().getFullYear())
       loadSummary()
+      addTxnNotification(tx, 'New transaction added')
+      if(typeof window._refreshAuxPages === 'function') window._refreshAuxPages()
       toast('Transaction added!', 'success')
     }catch(err){
       console.error('addTxn', err)
@@ -703,6 +756,7 @@
     _confirmCb = onOk
     openOverlay('confirmOverlay')
   }
+  window._showConfirm = showConfirm
 
   // ── OVERLAYS ──
   function openOverlay(id){
@@ -725,9 +779,13 @@
                : null
       var badge = $('syncBadge'), lbl = $('syncLabel')
       if(!badge || !lbl) return
-      var online = s && (s.message==='ok' || s.synced===true)
+      var settings = {}
+      try { settings = JSON.parse(localStorage.getItem('gcashPosSettings')||'{}') } catch(e){}
+      var online = (typeof settings.syncOverride === 'boolean') ? settings.syncOverride : (s && (s.message==='ok' || s.synced===true))
       badge.className = 'sync-badge ' + (online ? 'online' : 'offline')
       lbl.textContent  = online ? 'Online' : 'Offline'
+      badge.title = 'Click to turn ' + (online ? 'Offline' : 'Online')
+      if(typeof window._refreshAuxPages === 'function') window._refreshAuxPages()
     }catch(e){}
   }
 
@@ -919,6 +977,7 @@
       await _origLoadTx()
       renderDailyPage()
       buildMSYearSel(); buildMSMonthTabs(); renderMonthlyPage()
+      if(typeof window._refreshAuxPages === 'function') window._refreshAuxPages()
     }
 
     // ── MONTHLY SALES PAGE ──
@@ -1075,6 +1134,489 @@
       var next = $('msNextYear'); if(next) next.addEventListener('click', function(){ msYear++; buildMSYearSel(); msPage=1; renderMonthlyPage() })
       var mst = $('msTypeFilter'); if(mst) mst.addEventListener('change', function(){ msTypeF=mst.value; msPage=1; renderMonthlyPage() })
       var mss = $('msSearch'); if(mss) mss.addEventListener('input', function(){ msSearch=mss.value.trim(); msPage=1; renderMonthlyPage() })
+    })()
+
+    // ── REPORTS PAGE ──
+    var reportRows = []
+
+    function csvEscape(v){
+      v = v == null ? '' : String(v)
+      return '"' + v.replace(/"/g, '""') + '"'
+    }
+
+    function getReportRange(){
+      var type = ($('reportType') && $('reportType').value) || 'daily'
+      var now = new Date()
+      var from = localDate(now)
+      var to = localDate(now)
+      if(type === 'monthly'){
+        from = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01'
+        to = localDate(new Date(now.getFullYear(), now.getMonth()+1, 0))
+      } else if(type === 'yearly'){
+        from = now.getFullYear() + '-01-01'
+        to = now.getFullYear() + '-12-31'
+      } else if(type === 'custom'){
+        from = ($('reportFrom') && $('reportFrom').value) || from
+        to = ($('reportTo') && $('reportTo').value) || to
+      }
+      return { type:type, from:from, to:to }
+    }
+
+    function setReportPresetRange(){
+      var range = getReportRange()
+      var fromEl = $('reportFrom'), toEl = $('reportTo')
+      if(fromEl) fromEl.value = range.from
+      if(toEl) toEl.value = range.to
+    }
+
+    function syncReportInputs(){
+      var range = getReportRange()
+      var fromEl = $('reportFrom'), toEl = $('reportTo')
+      if(fromEl && !fromEl.value) fromEl.value = range.from
+      if(toEl && !toEl.value) toEl.value = range.to
+    }
+
+    function filteredReportRows(){
+      syncReportInputs()
+      var from = ($('reportFrom') && $('reportFrom').value) || localDate(new Date())
+      var to = ($('reportTo') && $('reportTo').value) || from
+      var status = $('reportStatus') ? $('reportStatus').value : 'success'
+      return rows.filter(function(r){
+        if(!r.created_at) return false
+        var d = localDate(r.created_at)
+        if(d < from || d > to) return false
+        if(status && (r.status||'').toLowerCase() !== status) return false
+        return true
+      })
+    }
+
+    function renderReportsPage(){
+      reportRows = filteredReportRows()
+      var successRows = reportRows.filter(function(r){ return (r.status||'').toLowerCase()==='success' })
+      var totalRows = ($('reportStatus') && $('reportStatus').value) === 'success' ? reportRows : successRows
+      var cashIn = totalRows.filter(function(r){ return r.type==='cash_in' }).reduce(function(s,r){ return s+(Number(r.amount)||0) },0)
+      var cashOut = totalRows.filter(function(r){ return r.type==='cash_out' }).reduce(function(s,r){ return s+(Number(r.amount)||0) },0)
+      var serviceFee = totalRows.reduce(function(s,r){ return s+(Number(r.service_fee)||0) },0)
+      setText('reportCashIn', '₱'+money(cashIn))
+      setText('reportCashOut', '₱'+money(cashOut))
+      setText('reportNet', '₱'+money(cashIn+cashOut))
+      setText('reportServiceFee', '₱'+money(serviceFee))
+
+      var range = getReportRange()
+      setText('reportTableTitle', 'Report Transactions — ' + range.from + ' to ' + range.to)
+      setText('reportInfo', reportRows.length + ' record' + (reportRows.length===1?'':'s'))
+      setText('reportRangePill', range.from === range.to ? range.from : (range.from + ' → ' + range.to))
+
+      var counts = { success:0, pending:0, failed:0, cash_in:0, cash_out:0 }
+      reportRows.forEach(function(r){
+        var st = (r.status||'pending').toLowerCase()
+        counts[st] = (counts[st]||0) + 1
+        counts[r.type] = (counts[r.type]||0) + 1
+      })
+      var bd = $('reportBreakdown')
+      if(bd){
+        bd.innerHTML = '<div class="break-card"><span>Total Transactions</span><strong>'+reportRows.length+'</strong></div>'+
+          '<div class="break-card"><span>Success</span><strong>'+counts.success+'</strong></div>'+
+          '<div class="break-card"><span>Pending</span><strong>'+counts.pending+'</strong></div>'+
+          '<div class="break-card"><span>Failed</span><strong>'+counts.failed+'</strong></div>'+
+          '<div class="break-card"><span>Cash In Count</span><strong>'+counts.cash_in+'</strong></div>'+
+          '<div class="break-card"><span>Cash Out Count</span><strong>'+counts.cash_out+'</strong></div>'
+      }
+
+      var body = $('reportBody')
+      if(body){
+        body.innerHTML = reportRows.length ? reportRows.map(function(r){
+          return '<tr><td><strong>'+(r.transaction_id||'—')+'</strong></td><td>'+fmtDate(r.created_at)+'</td><td>'+(r.customer_name||'Walk-in')+'</td><td>'+typeChip(r.type)+'</td><td><strong>₱'+money(r.amount)+'</strong></td><td>₱'+money(r.service_fee||0)+'</td><td>'+statusPill(r.status)+'</td></tr>'
+        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:36px;color:#94a3b8;">No records for this report</td></tr>'
+      }
+
+      buildReportChart(reportRows)
+    }
+
+    function emailReport(){
+      renderReportsPage()
+      var emailEl = $('reportEmail')
+      var email = emailEl ? emailEl.value.trim() : ''
+      if(!email){ toast('Enter an email address first','error'); if(emailEl) emailEl.focus(); return }
+      var s = getSettings()
+      if(!s.smtpHost || !s.smtpUser || !s.smtpPass){
+        toast('Complete SMTP settings first','error')
+        if(window.showPage) window.showPage('settings')
+        return
+      }
+      showActionConfirm(
+        'Send Report via Email?',
+        'Send this generated report to ' + email + '?',
+        function(){ sendReportNow(email) },
+        'Send Email',
+        'btn-primary'
+      )
+    }
+
+    function getReportTotals(){
+      var successRows = reportRows.filter(function(r){ return (r.status||'').toLowerCase()==='success' })
+      var cashIn = successRows.filter(function(r){ return r.type==='cash_in' }).reduce(function(sum,r){ return sum+(Number(r.amount)||0) },0)
+      var cashOut = successRows.filter(function(r){ return r.type==='cash_out' }).reduce(function(sum,r){ return sum+(Number(r.amount)||0) },0)
+      var serviceFee = successRows.reduce(function(sum,r){ return sum+(Number(r.service_fee)||0) },0)
+      var totalAmount = cashIn + cashOut
+      return { cashIn:cashIn, cashOut:cashOut, serviceFee:serviceFee, totalAmount:totalAmount, grandTotal:totalAmount + serviceFee }
+    }
+
+    async function sendReportNow(email){
+      var s = getSettings()
+      var range = getReportRange()
+      var totals = getReportTotals()
+      var payload = {
+        to: email,
+        smtp: {
+          host: s.smtpHost,
+          port: Number(s.smtpPort || 587),
+          secure: String(s.smtpSecure) === 'true' || s.smtpSecure === true,
+          user: s.smtpUser,
+          pass: s.smtpPass,
+          from: s.smtpFrom || s.smtpUser
+        },
+        report: {
+          range: range,
+          summary: {
+            cashIn: money(totals.cashIn),
+            cashOut: money(totals.cashOut),
+            net: money(totals.totalAmount),
+            serviceFee: money(totals.serviceFee),
+            totalAmount: money(totals.totalAmount),
+            grandTotal: money(totals.grandTotal)
+          },
+          rows: reportRows.map(function(r){
+            return {
+              transaction_id: r.transaction_id || '',
+              created_at: fmtDateLong(r.created_at),
+              customer_name: r.customer_name || 'Walk-in',
+              type: r.type || '',
+              amount: r.amount || 0,
+              service_fee: r.service_fee || 0,
+              status: r.status || ''
+            }
+          })
+        }
+      }
+      try{
+        toast('Report queued for ' + email, 'success')
+        toast('Sending in background…', 'info')
+        var res = window.electronAPI && window.electronAPI.email ? await window.electronAPI.email.sendReport(payload) : {success:false,error:'Email API unavailable'}
+        if(res && res.success){
+          toast('Report delivered to ' + email, 'success')
+          addTxnNotification({ id:'email-'+Date.now(), transaction_id:'EMAIL-REPORT', customer_name:email, type:'report_email', amount:0, notificationText:'Report sent to ' + email }, 'Report email sent')
+        } else {
+          toast((res && res.error) ? res.error : 'Failed to send report', 'error')
+        }
+      }catch(err){
+        toast(err && err.message ? err.message : 'Failed to send report', 'error')
+      }
+    }
+
+    function buildReportChart(data){
+      var canvas = $('reportChart'); if(!canvas || !window.Chart) return
+      var range = getReportRange()
+      var buckets = {}
+      data.filter(function(r){ return (r.status||'').toLowerCase()==='success' }).forEach(function(r){
+        var d = localDate(r.created_at)
+        var key = range.type === 'yearly' ? d.slice(0,7) : d
+        if(!buckets[key]) buckets[key] = { cash_in:0, cash_out:0 }
+        if(r.type === 'cash_in') buckets[key].cash_in += Number(r.amount)||0
+        if(r.type === 'cash_out') buckets[key].cash_out += Number(r.amount)||0
+      })
+      var keys = Object.keys(buckets).sort()
+      if(!keys.length){ keys = [range.from]; buckets[range.from] = {cash_in:0, cash_out:0} }
+      var labels = keys.map(function(k){
+        return range.type === 'yearly' ? new Date(k+'-01T00:00:00').toLocaleDateString('en-PH',{month:'short'}) : new Date(k+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric'})
+      })
+      if(reportChart) reportChart.destroy()
+      reportChart = new Chart(canvas, {
+        type:'bar',
+        data:{ labels:labels, datasets:[
+          { label:'Cash In', data:keys.map(function(k){ return buckets[k].cash_in }), backgroundColor:'rgba(76,110,245,.85)', borderRadius:4 },
+          { label:'Cash Out', data:keys.map(function(k){ return buckets[k].cash_out }), backgroundColor:'rgba(239,68,68,.75)', borderRadius:4 }
+        ]},
+        options:Object.assign({}, baseOpts, { plugins:Object.assign({}, baseOpts.plugins, { legend:{display:true, labels:{color:'#6B7280', font:{size:12}}} }) })
+      })
+    }
+
+    function exportReportCsv(){
+      renderReportsPage()
+      var totals = getReportTotals()
+      var lines = [['Transaction ID','Date','Customer','Type','Amount','Service Fee','Status'].map(csvEscape).join(',')]
+      reportRows.forEach(function(r){
+        lines.push([r.transaction_id||'', fmtDateLong(r.created_at), r.customer_name||'Walk-in', r.type||'', r.amount||0, r.service_fee||0, r.status||''].map(csvEscape).join(','))
+      })
+      lines.push('')
+      lines.push(['SUMMARY','','','','','',''].map(csvEscape).join(','))
+      lines.push(['Cash In','','','',totals.cashIn,'',''].map(csvEscape).join(','))
+      lines.push(['Cash Out','','','',totals.cashOut,'',''].map(csvEscape).join(','))
+      lines.push(['Total Amount (Cash In + Cash Out)','','','',totals.totalAmount,'',''].map(csvEscape).join(','))
+      lines.push(['Service Fee','','','',totals.serviceFee,'',''].map(csvEscape).join(','))
+      lines.push(['GRAND TOTAL (Amount + Service Fee)','','','',totals.grandTotal,'',''].map(csvEscape).join(','))
+      var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'})
+      var a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'gcash-pos-report-' + localDate(new Date()) + '.csv'
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(a.href)
+      toast('Report exported','success')
+    }
+
+    ;(function(){
+      window._renderReportsPage = renderReportsPage
+      var rt = $('reportType'); if(rt) rt.addEventListener('change', function(){ setReportPresetRange(); renderReportsPage() })
+      ;['reportFrom','reportTo'].forEach(function(id){ var el=$(id); if(el) el.addEventListener('change', function(){ var type=$('reportType'); if(type) type.value='custom'; renderReportsPage() }) })
+      var rs = $('reportStatus'); if(rs) rs.addEventListener('change', renderReportsPage)
+      var run = $('reportRunBtn'); if(run) run.addEventListener('click', function(){
+        renderReportsPage()
+        if($('reportEmail') && $('reportEmail').value.trim()) emailReport()
+      })
+      var exp = $('reportExportBtn'); if(exp) exp.addEventListener('click', exportReportCsv)
+      var eml = $('reportEmailBtn'); if(eml) eml.addEventListener('click', emailReport)
+      var prn = $('reportPrintBtn'); if(prn) prn.addEventListener('click', function(){ renderReportsPage(); window.print() })
+      var email = $('reportEmail'); if(email){ var ss=getSettings(); email.value = ss.reportEmail || ss.profileEmail || '' }
+      setReportPresetRange()
+    })()
+
+    // ── SETTINGS / PROFILE / NOTIFICATIONS / ABOUT ──
+    var defaultSettings = {
+      businessName:'GCash POS', branch:'Main Branch', receiptFooter:'Thank you for your transaction', defaultFee:'0',
+      profileName:'POS User', profileRole:'POS Administrator', profileEmail:'admin@gcashpos.local', profileInitials:'PU',
+      profilePhoto:'', reportEmail:'', smtpHost:'smtp.gmail.com', smtpPort:'587', smtpUser:'', smtpFrom:'', smtpPass:'', smtpSecure:'false', compact:false, notifDot:true, autoRefresh:false, syncOverride:null
+    }
+
+    function getSettings(){
+      var s
+      try { s = Object.assign({}, defaultSettings, JSON.parse(localStorage.getItem('gcashPosSettings')||'{}')) }
+      catch(e){ s = Object.assign({}, defaultSettings) }
+      if(!s.reportEmail || s.reportEmail === 'admin@gcashpos.local') s.reportEmail = s.profileEmail || defaultSettings.profileEmail
+      return s
+    }
+
+    function saveSettingsObj(s){ localStorage.setItem('gcashPosSettings', JSON.stringify(s)) }
+
+    function initialsFromName(name){
+      return String(name||'').split(/\s+/).filter(Boolean).slice(0,2).map(function(p){ return p.charAt(0).toUpperCase() }).join('') || 'DR'
+    }
+
+    function setAvatarVisual(el, s){
+      if(!el) return
+      var initials = s.profileInitials || initialsFromName(s.profileName)
+      if(s.profilePhoto){
+        el.style.backgroundImage = 'url(' + s.profilePhoto + ')'
+        el.classList.add('has-photo')
+        el.textContent = initials
+      } else {
+        el.style.backgroundImage = ''
+        el.classList.remove('has-photo')
+        el.textContent = initials
+      }
+    }
+
+    function applySettings(){
+      var s = getSettings()
+      document.body.classList.toggle('compact-mode', !!s.compact)
+      setText('profileNameTop', s.profileName)
+      setText('profileNameMenu', s.profileName)
+      setText('profileRoleMenu', s.profileRole)
+      setAvatarVisual($('profileAvatar'), s)
+      setAvatarVisual($('profileAvatarMenu'), s)
+      setAvatarVisual($('profilePhotoPreview'), s)
+      var dashSub = document.querySelector('#page-dashboard .page-sub')
+      if(dashSub) dashSub.textContent = 'Welcome back, ' + s.profileName
+      var fee = $('fServiceFee')
+      if(fee && !fee.value) fee.value = s.defaultFee || '0'
+      var reportEmailEl = $('reportEmail')
+      if(reportEmailEl && (!reportEmailEl.value || reportEmailEl.value === 'admin@gcashpos.local')) reportEmailEl.value = s.reportEmail || s.profileEmail || ''
+      updateNotifications()
+    }
+
+    function renderSettingsPage(){
+      var s = getSettings()
+      ;[['setBusinessName','businessName'],['setBranch','branch'],['setReceiptFooter','receiptFooter'],['setDefaultFee','defaultFee'],['setProfileName','profileName'],['setProfileRole','profileRole'],['setProfileEmail','profileEmail'],['setProfileInitials','profileInitials'],['setSmtpHost','smtpHost'],['setSmtpPort','smtpPort'],['setSmtpUser','smtpUser'],['setSmtpFrom','smtpFrom'],['setSmtpPass','smtpPass']].forEach(function(pair){ var el=$(pair[0]); if(el) el.value = s[pair[1]] || '' })
+      var sec=$('setSmtpSecure'); if(sec) sec.value = String(s.smtpSecure === true || s.smtpSecure === 'true')
+      var c=$('setCompact'); if(c) c.checked = !!s.compact
+      var n=$('setNotifDot'); if(n) n.checked = !!s.notifDot
+      var a=$('setAutoRefresh'); if(a) a.checked = !!s.autoRefresh
+      setAvatarVisual($('profilePhotoPreview'), s)
+      setText('settingsStatus', 'Settings loaded')
+    }
+
+    function collectSettings(){
+      var s = getSettings()
+      ;[['setBusinessName','businessName'],['setBranch','branch'],['setReceiptFooter','receiptFooter'],['setDefaultFee','defaultFee'],['setProfileName','profileName'],['setProfileRole','profileRole'],['setProfileEmail','profileEmail'],['setProfileInitials','profileInitials'],['setSmtpHost','smtpHost'],['setSmtpPort','smtpPort'],['setSmtpUser','smtpUser'],['setSmtpFrom','smtpFrom'],['setSmtpPass','smtpPass']].forEach(function(pair){ var el=$(pair[0]); if(el) s[pair[1]] = el.value.trim() })
+      var sec=$('setSmtpSecure'); if(sec) s.smtpSecure = sec.value
+      if($('reportEmail')) s.reportEmail = $('reportEmail').value.trim() || s.profileEmail
+      if(!s.reportEmail || s.reportEmail === 'admin@gcashpos.local') s.reportEmail = s.profileEmail
+      if(!s.profileInitials) s.profileInitials = initialsFromName(s.profileName)
+      s.compact = !!($('setCompact') && $('setCompact').checked)
+      s.notifDot = !!($('setNotifDot') && $('setNotifDot').checked)
+      s.autoRefresh = !!($('setAutoRefresh') && $('setAutoRefresh').checked)
+      return s
+    }
+
+    function saveSettings(showToast){
+      var s = collectSettings()
+      saveSettingsObj(s)
+      applySettings()
+      setText('settingsStatus', 'Saved on ' + new Date().toLocaleTimeString('en-PH'))
+      if(showToast !== false) toast('Settings saved','success')
+    }
+
+    var settingsAutoSaveTimer = null
+    function autoSaveSettings(){
+      if(settingsAutoSaveTimer) clearTimeout(settingsAutoSaveTimer)
+      settingsAutoSaveTimer = setTimeout(function(){
+        saveSettings(false)
+        setText('settingsStatus', 'Auto-saved on ' + new Date().toLocaleTimeString('en-PH'))
+      }, 350)
+    }
+
+    var cropImg = null
+    function drawCrop(){
+      var canvas = $('cropCanvas'); if(!canvas || !cropImg) return
+      var ctx = canvas.getContext('2d')
+      var zoom = parseFloat(($('cropZoom') && $('cropZoom').value) || 1)
+      var offX = parseFloat(($('cropX') && $('cropX').value) || 0)
+      var offY = parseFloat(($('cropY') && $('cropY').value) || 0)
+      ctx.clearRect(0,0,canvas.width,canvas.height)
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,canvas.width,canvas.height)
+      var scale = Math.max(canvas.width / cropImg.width, canvas.height / cropImg.height) * zoom
+      var w = cropImg.width * scale
+      var h = cropImg.height * scale
+      var x = (canvas.width - w) / 2 + offX
+      var y = (canvas.height - h) / 2 + offY
+      ctx.drawImage(cropImg, x, y, w, h)
+    }
+
+    function openCropFromFile(file){
+      if(!file) return
+      var reader = new FileReader()
+      reader.onload = function(){
+        cropImg = new Image()
+        cropImg.onload = function(){
+          ;['cropZoom','cropX','cropY'].forEach(function(id){ var el=$(id); if(el) el.value = id==='cropZoom' ? '1' : '0' })
+          openOverlay('cropOverlay')
+          drawCrop()
+        }
+        cropImg.src = reader.result
+      }
+      reader.readAsDataURL(file)
+    }
+
+    function applyCroppedPhoto(){
+      var srcCanvas = $('cropCanvas'); if(!srcCanvas) return
+      var out = document.createElement('canvas')
+      out.width = 220; out.height = 220
+      var ctx = out.getContext('2d')
+      ctx.clearRect(0,0,220,220)
+      ctx.save()
+      ctx.beginPath(); ctx.arc(110,110,110,0,Math.PI*2); ctx.closePath(); ctx.clip()
+      ctx.drawImage(srcCanvas, 50, 50, 220, 220, 0, 0, 220, 220)
+      ctx.restore()
+      var s = getSettings()
+      s.profilePhoto = out.toDataURL('image/png')
+      saveSettingsObj(s)
+      closeOverlay('cropOverlay')
+      applySettings(); renderSettingsPage()
+      toast('Profile photo updated','success')
+    }
+
+    function updateNotifications(){
+      var s = getSettings()
+      var list = $('notifList'), dot = $('notifDot')
+      var items = []
+      var saved = getTxnNotifications()
+      saved.forEach(function(n){ items.push({kind:'', title:n.title, text:n.text, time:n.createdAt, txId:n.txId, transactionId:n.transactionId, snapshot:n.snapshot}) })
+      var pending = rows.filter(function(r){ return (r.status||'').toLowerCase()==='pending' })
+      if(pending.length) items.push({kind:'warn', title:pending.length+' pending transaction'+(pending.length===1?'':'s'), text:'Review and confirm pending records.'})
+      var failed = rows.filter(function(r){ return (r.status||'').toLowerCase()==='failed' })
+      if(failed.length) items.push({kind:'err', title:failed.length+' failed transaction'+(failed.length===1?'':'s'), text:'Check failed records in customer transactions.'})
+      var badge = $('syncBadge')
+      if(badge && badge.classList.contains('offline')) items.push({kind:'warn', title:'Sync is offline', text:'Data is safe locally and will sync when connected.'})
+      if(list){
+        list.innerHTML = items.length ? items.map(function(it){
+          var meta = it.time ? '<small>'+new Date(it.time).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</small>' : ''
+          var snap = it.snapshot ? encodeURIComponent(JSON.stringify(it.snapshot)) : ''
+          return '<div class="notif-item" data-target="customers" data-tx-id="'+(it.txId||'')+'" data-transaction-id="'+(it.transactionId||'')+'" data-snapshot="'+snap+'"><div class="notif-ico '+it.kind+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="notif-copy"><strong>'+it.title+'</strong><span>'+it.text+'</span>'+meta+'</div></div>'
+        }).join('') : '<div class="drop-empty">No notifications</div>'
+        list.querySelectorAll('.notif-item').forEach(function(item){ item.addEventListener('click', function(){
+          closeDropdowns()
+          var found = rows.find(function(r){ return String(r.id) === String(item.dataset.txId) || String(r.transaction_id) === String(item.dataset.transactionId) })
+          if(found) openView(found)
+          else if(item.dataset.snapshot){ try{ openView(JSON.parse(decodeURIComponent(item.dataset.snapshot))) } catch(e){ if(window.showPage) window.showPage(item.dataset.target) } }
+          else if(window.showPage) window.showPage(item.dataset.target)
+        }) })
+      }
+      if(dot) dot.style.display = (s.notifDot && items.length) ? 'block' : 'none'
+    }
+
+    function renderAboutPage(){
+      setText('aboutTxnCount', rows.length)
+      setText('aboutDate', new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'}))
+      var badge = $('syncBadge')
+      setText('aboutSyncStatus', badge && badge.classList.contains('online') ? 'Online' : 'Offline')
+    }
+
+    function closeDropdowns(){
+      var nm=$('notifMenu'), pm=$('profileMenu')
+      if(nm) nm.classList.remove('open')
+      if(pm) pm.classList.remove('open')
+    }
+
+    function toggleDropdown(id){
+      var el=$(id); if(!el) return
+      var open = el.classList.contains('open')
+      closeDropdowns()
+      if(!open) el.classList.add('open')
+    }
+
+    ;(function(){
+      window._renderSettingsPage = renderSettingsPage
+      window._renderAboutPage = renderAboutPage
+      window._updateNotifications = updateNotifications
+      window._refreshAuxPages = function(){ renderReportsPage(); updateNotifications(); renderAboutPage(); applySettings() }
+      var save=$('settingsSaveBtn'); if(save) save.addEventListener('click', function(){ saveSettings(true) })
+      ;['setBusinessName','setBranch','setReceiptFooter','setDefaultFee','setProfileName','setProfileRole','setProfileEmail','setProfileInitials','setSmtpHost','setSmtpPort','setSmtpUser','setSmtpFrom','setSmtpPass','setSmtpSecure','setCompact','setNotifDot','setAutoRefresh','reportEmail'].forEach(function(id){
+        var el = $(id)
+        if(!el) return
+        el.addEventListener(el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input', autoSaveSettings)
+      })
+      window.addEventListener('beforeunload', function(){ saveSettings(false) })
+      var refresh=$('settingsRefreshBtn'); if(refresh) refresh.addEventListener('click', function(){ loadTransactions(); loadSummary(); setText('settingsStatus','Data refreshed'); toast('Data refreshed','success') })
+      var reset=$('settingsResetBtn'); if(reset) reset.addEventListener('click', function(){ showConfirm('Reset Settings?', 'This restores default local settings only.', function(){ localStorage.removeItem('gcashPosSettings'); renderSettingsPage(); applySettings(); toast('Settings reset','success') }, 'Reset', 'btn-danger') })
+      var sync=$('settingsSyncBtn'); if(sync) sync.addEventListener('click', async function(){ setText('settingsStatus','Syncing…'); try{ if(window.electronAPI && window.electronAPI.sync) await window.electronAPI.sync.forceSync(); await updateSync(); setText('settingsStatus','Sync completed'); toast('Sync completed','success') }catch(e){ setText('settingsStatus','Sync failed'); toast('Sync failed','error') } })
+      var syncBadge=$('syncBadge'); if(syncBadge) syncBadge.addEventListener('click', function(){
+        var s = getSettings()
+        var nowOnline = syncBadge.classList.contains('online')
+        s.syncOverride = !nowOnline
+        saveSettingsObj(s)
+        updateSync()
+        toast('Sync set to ' + (!nowOnline ? 'Online' : 'Offline'), 'success')
+      })
+      var photoBtn=$('profilePhotoBtn'); if(photoBtn) photoBtn.addEventListener('click', function(){ var inp=$('profilePhotoInput'); if(inp) inp.click() })
+      var photoInput=$('profilePhotoInput'); if(photoInput) photoInput.addEventListener('change', function(){ openCropFromFile(photoInput.files && photoInput.files[0]); photoInput.value='' })
+      var photoRemove=$('profilePhotoRemoveBtn'); if(photoRemove) photoRemove.addEventListener('click', function(){ var s=getSettings(); s.profilePhoto=''; saveSettingsObj(s); applySettings(); renderSettingsPage(); toast('Profile photo removed','success') })
+      var profileEmailInput=$('setProfileEmail'); if(profileEmailInput) profileEmailInput.addEventListener('input', function(){ var re=$('reportEmail'); if(re && (!re.value || re.value === 'admin@gcashpos.local')) re.value = profileEmailInput.value.trim(); autoSaveSettings() })
+      ;['cropZoom','cropX','cropY'].forEach(function(id){ var el=$(id); if(el) el.addEventListener('input', drawCrop) })
+      var cropApply=$('cropApply'); if(cropApply) cropApply.addEventListener('click', applyCroppedPhoto)
+      var cropCancel=$('cropCancel'); if(cropCancel) cropCancel.addEventListener('click', function(){ closeOverlay('cropOverlay') })
+      var cropClose=$('cropClose'); if(cropClose) cropClose.addEventListener('click', function(){ closeOverlay('cropOverlay') })
+      var cropOverlay=$('cropOverlay'); if(cropOverlay) cropOverlay.addEventListener('click', function(e){ if(e.target===cropOverlay) closeOverlay('cropOverlay') })
+      var notif=$('notifBtn'); if(notif) notif.addEventListener('click', function(e){ e.stopPropagation(); updateNotifications(); toggleDropdown('notifMenu') })
+      var clear=$('notifClearBtn'); if(clear) clear.addEventListener('click', function(){ saveTxnNotifications([]); var list=$('notifList'); if(list) list.innerHTML='<div class="drop-empty">No notifications</div>'; var dot=$('notifDot'); if(dot) dot.style.display='none'; toast('Notifications cleared','success') })
+      var chip=$('profileChip'); if(chip) chip.addEventListener('click', function(e){ e.stopPropagation(); toggleDropdown('profileMenu') })
+      var ps=$('profileSettingsBtn'); if(ps) ps.addEventListener('click', function(){ closeDropdowns(); if(window.showPage) window.showPage('settings') })
+      var pa=$('profileAboutBtn'); if(pa) pa.addEventListener('click', function(){ closeDropdowns(); if(window.showPage) window.showPage('about') })
+      var pl=$('profileLogoutBtn'); if(pl) pl.addEventListener('click', function(){ closeDropdowns(); window.location.href='./login.html' })
+      var ar=$('aboutOpenReports'); if(ar) ar.addEventListener('click', function(){ if(window.showPage) window.showPage('reports') })
+      var as=$('aboutOpenSettings'); if(as) as.addEventListener('click', function(){ if(window.showPage) window.showPage('settings') })
+      document.addEventListener('click', closeDropdowns)
+      var nm=$('notifMenu'); if(nm) nm.addEventListener('click', function(e){ e.stopPropagation() })
+      var pm=$('profileMenu'); if(pm) pm.addEventListener('click', function(e){ e.stopPropagation() })
+      renderSettingsPage(); applySettings(); renderReportsPage(); renderAboutPage(); updateNotifications()
     })()
 
     // Confirm dialog

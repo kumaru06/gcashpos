@@ -19,6 +19,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getStatus: () => ipcRenderer.invoke('sync:status'),
     forceSync: () => ipcRenderer.invoke('sync:force')
   },
+  email: {
+    sendReport: (payload) => ipcRenderer.invoke('email:send-report', payload)
+  },
   settings: {
     get: (key) => ipcRenderer.invoke('settings:get', key),
     set: (key, value) => ipcRenderer.invoke('settings:set', key, value)

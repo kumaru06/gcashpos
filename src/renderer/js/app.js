@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // sidebar toggle
-  const toggle = document.getElementById('toggleSidebar')
+  const toggle = document.getElementById('toggleSidebar') || document.getElementById('sidebarToggle')
   if (toggle) {
     toggle.addEventListener('click', () => {
       const sb = document.querySelector('.sidebar')
-      if (sb) sb.classList.toggle('collapse')
+      if (sb) sb.classList.toggle('collapsed')
     })
   }
 
@@ -109,6 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // page-specific hooks
     if (name === 'daily-sales'   && typeof window._renderDailyPage   === 'function') window._renderDailyPage()
     if (name === 'monthly-sales' && typeof window._renderMonthlyPage === 'function') window._renderMonthlyPage()
+    if (name === 'reports'       && typeof window._renderReportsPage === 'function') window._renderReportsPage()
+    if (name === 'settings'      && typeof window._renderSettingsPage === 'function') window._renderSettingsPage()
+    if (name === 'about'         && typeof window._renderAboutPage === 'function') window._renderAboutPage()
   }
 
   // wire sidebar nav data-page clicks
@@ -118,8 +121,5 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   })
 
-  // if on dashboard, boot it
-  if (document.getElementById('dailyChart')) {
-    import('./dashboard.js').then(m => m.initDashboard())
-  }
+  // dashboard.js is loaded directly by index.html
 })

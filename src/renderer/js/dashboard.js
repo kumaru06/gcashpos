@@ -19,8 +19,12 @@
   // ── HELPERS ──
   function $(id){ return document.getElementById(id) }
   function setText(id, v){ var el=$(id); if(el) el.textContent=v }
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] }) }
   function money(n){ return Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:0}) }
   function fmtDate(s){ if(!s) return '—'; var d=new Date(s); return d.toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'}) }
+  function currentUser(){ try { return JSON.parse(localStorage.getItem('gcashPosCurrentUser') || '{}') } catch(e){ return {} } }
+  function currentUserIsAdmin(){ return ((currentUser().role || '').toLowerCase() === 'admin') }
+  function isValidReferenceNumber(ref){ return /^\d{4}-\d{3}-\d{6}$/.test(String(ref || '').trim()) }
   function fmtDateLong(s){
     if(!s) return '—'
     var d = new Date(s)
@@ -434,6 +438,10 @@
 
     tbody.querySelectorAll('.del-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if(!currentUserIsAdmin()){
+          toast('Only Admin can delete', 'error')
+          return
+        }
         var id = btn.dataset.id
         showConfirm('Delete Transaction?', 'This action cannot be undone.', function(){
           deleteRow(id)
@@ -499,6 +507,10 @@
 
     tbody.querySelectorAll('.del-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if(!currentUserIsAdmin()){
+          toast('Only Admin can delete', 'error')
+          return
+        }
         var id = btn.dataset.id
         showConfirm('Delete Transaction?', 'This action cannot be undone.', function(){
           deleteRow(id)
@@ -633,7 +645,7 @@
     var body = $('viewBody'); if(!body) return
     var isPending = (r.status||'').toLowerCase() === 'pending'
     body.innerHTML = '<div class="det-grid">'
-      + '<div class="det-item"><div class="det-lbl">Transaction ID</div><div class="det-val">'+(r.transaction_id||'—')+'</div></div>'
+      + '<div class="det-item"><div class="det-lbl">Reference Number</div><div class="det-val">'+(r.transaction_id||'—')+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Date &amp; Time</div><div class="det-val">'+fmtDateLong(r.created_at)+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Customer</div><div class="det-val">'+(r.customer_name||'Walk-in')+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Type</div><div class="det-val">'+typeChip(r.type)+'</div></div>'
@@ -642,6 +654,7 @@
       + '<div class="det-item"><div class="det-lbl">Status</div><div class="det-val">'+statusPill(r.status)+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Sync Status</div><div class="det-val">'+(r.sync_status||'—')+'</div></div>'
       + '</div>'
+        + '<div class="modal-ftr"><button class="btn btn-primary" id="saveTxnPdfBtn">Save as PDF</button></div>'
       + (isPending
           ? '<div class="det-update-bar">'
             + '<span class="det-update-lbl">Update Status:</span>'
@@ -664,7 +677,28 @@
         )
       })
     })
+    var pdfBtn = $('saveTxnPdfBtn')
+    if(pdfBtn) pdfBtn.addEventListener('click', function(){ saveTransactionPdf(r, pdfBtn) })
     openOverlay('viewOverlay')
+  }
+
+  async function saveTransactionPdf(r, btn){
+    if(!window.electronAPI || !window.electronAPI.pdf || !window.electronAPI.pdf.saveTransaction){
+      toast('PDF export is unavailable', 'error')
+      return
+    }
+    var oldText = btn ? btn.textContent : ''
+    if(btn){ btn.disabled = true; btn.textContent = 'Saving PDF…' }
+    try{
+      var res = await window.electronAPI.pdf.saveTransaction(r)
+      if(res && res.canceled) return
+      if(!res || !res.success) throw new Error((res && res.error) || 'Failed to save PDF')
+      toast('Transaction PDF saved', 'success')
+    }catch(e){
+      toast(e && e.message ? e.message : 'Failed to save PDF', 'error')
+    }finally{
+      if(btn){ btn.disabled = false; btn.textContent = oldText || 'Save as PDF' }
+    }
   }
 
   async function updateRowStatus(r, newStatus){
@@ -716,14 +750,27 @@
       customer_name:($('fCustomer') && $('fCustomer').value.trim()) || 'Walk-in'
     }
     var txnId = $('fTxnId') ? $('fTxnId').value.trim() : ''
-    if(txnId) tx.transaction_id = txnId
+    if(txnId){
+      if(!isValidReferenceNumber(txnId)){
+        toast('Reference number must follow 8040-299-185593 format', 'error')
+        if(btn){ btn.disabled=false; btn.textContent='Save Transaction' }
+        return
+      }
+      if(rows.some(function(r){ return String(r.transaction_id) === txnId })){
+        toast('Reference number already exists', 'error')
+        if(btn){ btn.disabled=false; btn.textContent='Save Transaction' }
+        return
+      }
+      tx.transaction_id = txnId
+    }
     try{
       var res = null
       if(window.electronAPI && window.electronAPI.db){
         res = await window.electronAPI.db.addTransaction(tx)
       }
+      if(res && res.success === false) throw new Error(res.error || 'Failed to add transaction')
       tx.id = (res && res.id) ? res.id : Date.now()
-      tx.transaction_id = tx.transaction_id || 'TXN-' + Date.now()
+      tx.transaction_id = (res && res.transaction_id) ? res.transaction_id : (tx.transaction_id || '')
       rows.unshift(tx)
       closeOverlay('addOverlay')
       $('addForm').reset()
@@ -736,7 +783,7 @@
       toast('Transaction added!', 'success')
     }catch(err){
       console.error('addTxn', err)
-      toast('Failed to add transaction','error')
+      toast(err && err.message ? err.message : 'Failed to add transaction','error')
     }finally{
       if(btn){ btn.disabled=false; btn.textContent='Save Transaction' }
     }
@@ -813,6 +860,14 @@
     var vo = $('viewOverlay'); if(vo) vo.addEventListener('click', function(e){ if(e.target===vo) closeOverlay('viewOverlay') })
 
     var af = $('addForm'); if(af) af.addEventListener('submit', submitAdd)
+    var refInput = $('fTxnId'); if(refInput) refInput.addEventListener('input', function(){
+      var digits = refInput.value.replace(/\D/g, '').slice(0, 13)
+      var parts = []
+      if(digits.slice(0, 4)) parts.push(digits.slice(0, 4))
+      if(digits.slice(4, 7)) parts.push(digits.slice(4, 7))
+      if(digits.slice(7, 13)) parts.push(digits.slice(7, 13))
+      refInput.value = parts.join('-')
+    })
 
     var rb = $('refreshBtn'); if(rb) rb.addEventListener('click', function(){ loadTransactions(); loadSummary(); toast('Refreshed','success') })
 
@@ -1192,6 +1247,7 @@
 
     function renderReportsPage(){
       reportRows = filteredReportRows()
+      syncReportEmailField(getSettings(), getCurrentUser())
       var successRows = reportRows.filter(function(r){ return (r.status||'').toLowerCase()==='success' })
       var totalRows = ($('reportStatus') && $('reportStatus').value) === 'success' ? reportRows : successRows
       var cashIn = totalRows.filter(function(r){ return r.type==='cash_in' }).reduce(function(s,r){ return s+(Number(r.amount)||0) },0)
@@ -1234,6 +1290,10 @@
     }
 
     function emailReport(){
+      if(!currentUserIsAdmin()){
+        toast('Only Admin can view or send report email', 'error')
+        return
+      }
       renderReportsPage()
       var emailEl = $('reportEmail')
       var email = emailEl ? emailEl.value.trim() : ''
@@ -1344,7 +1404,7 @@
     function exportReportCsv(){
       renderReportsPage()
       var totals = getReportTotals()
-      var lines = [['Transaction ID','Date','Customer','Type','Amount','Service Fee','Status'].map(csvEscape).join(',')]
+      var lines = [['Reference Number','Date','Customer','Type','Amount','Service Fee','Status'].map(csvEscape).join(',')]
       reportRows.forEach(function(r){
         lines.push([r.transaction_id||'', fmtDateLong(r.created_at), r.customer_name||'Walk-in', r.type||'', r.amount||0, r.service_fee||0, r.status||''].map(csvEscape).join(','))
       })
@@ -1376,8 +1436,167 @@
       var exp = $('reportExportBtn'); if(exp) exp.addEventListener('click', exportReportCsv)
       var eml = $('reportEmailBtn'); if(eml) eml.addEventListener('click', emailReport)
       var prn = $('reportPrintBtn'); if(prn) prn.addEventListener('click', function(){ renderReportsPage(); window.print() })
-      var email = $('reportEmail'); if(email){ var ss=getSettings(); email.value = ss.reportEmail || ss.profileEmail || '' }
+      var email = $('reportEmail'); if(email){ var ss=getSettings(); syncReportEmailField(ss, getCurrentUser()) }
       setReportPresetRange()
+    })()
+
+    // ── STAFF ACCOUNTS PAGE ──
+    var staffRows = []
+    var staffSearch = ''
+    var staffLoaded = false
+
+    function staffRolePill(role){
+      var r = (role || 'staff').toLowerCase()
+      var cls = r === 'admin' ? 'pill-c' : 'pill-s'
+      return '<span class="pill '+cls+'">'+(r === 'admin' ? 'Administrator' : 'Staff')+'</span>'
+    }
+
+    function staffStatusPill(status){
+      var s = (status || 'active').toLowerCase()
+      return '<span class="pill '+(s === 'active' ? 'pill-s' : 'pill-f')+'">'+(s === 'active' ? 'Active' : 'Inactive')+'</span>'
+    }
+
+    function filteredStaff(){
+      var data = staffRows
+      if(staffSearch){
+        var q = staffSearch.toLowerCase()
+        data = data.filter(function(u){
+          return (u.username||'').toLowerCase().includes(q) ||
+                 (u.full_name||'').toLowerCase().includes(q) ||
+                 (u.role||'').toLowerCase().includes(q) ||
+                 (u.status||'').toLowerCase().includes(q)
+        })
+      }
+      return data
+    }
+
+    function renderStaffRows(){
+      var body = $('staffBody')
+      if(!body) return
+      var data = filteredStaff()
+      var active = staffRows.filter(function(u){ return (u.role||'staff').toLowerCase()==='staff' && (u.status||'active').toLowerCase()==='active' }).length
+      var inactive = staffRows.filter(function(u){ return (u.status||'active').toLowerCase()==='inactive' }).length
+      var admins = staffRows.filter(function(u){ return (u.role||'staff').toLowerCase()==='admin' }).length
+      setText('staffTotal', staffRows.length)
+      setText('staffActive', active)
+      setText('staffInactive', inactive)
+      setText('staffAdmins', admins)
+      setText('staffInfo', data.length + ' account' + (data.length===1?'':'s'))
+      if(!data.length){
+        body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#9CA3AF;font-size:13px">No staff accounts found</td></tr>'
+        return
+      }
+      body.innerHTML = data.map(function(u){
+        var enc = encodeURIComponent(JSON.stringify(u))
+        var isAdmin = (u.role || '').toLowerCase() === 'admin'
+        return '<tr>'+
+          '<td><strong>'+esc(u.full_name || u.username || 'Staff User')+'</strong></td>'+
+          '<td>'+esc(u.username || '—')+'</td>'+
+          '<td>'+staffRolePill(u.role)+'</td>'+
+          '<td>'+staffStatusPill(u.status)+'</td>'+
+          '<td>'+fmtDate(u.created_at)+'</td>'+
+          '<td class="row-actions staff-actions">'+
+          '<button class="view-btn staff-edit-btn" data-row="'+enc+'">Edit</button>'+
+          (isAdmin ? '<button class="del-btn staff-del-btn" disabled title="Administrator accounts cannot be deleted">Protected</button>' : '<button class="del-btn staff-del-btn" data-id="'+esc(u.id)+'">Delete</button>')+
+          '</td>'+
+          '</tr>'
+      }).join('')
+      body.querySelectorAll('.staff-edit-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          try { openStaffModal(JSON.parse(decodeURIComponent(btn.dataset.row))) }
+          catch(e){ toast('Error opening staff account','error') }
+        })
+      })
+      body.querySelectorAll('.staff-del-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if(btn.disabled) return
+          showConfirm('Delete Staff Account?', 'This staff login account will be removed permanently.', function(){ deleteStaff(btn.dataset.id) }, 'Delete', 'btn-danger')
+        })
+      })
+    }
+
+    async function loadStaff(){
+      var body = $('staffBody')
+      if(body) body.innerHTML = '<tr class="sk-row"><td colspan="6"><div class="sk"></div></td></tr>'
+      try{
+        staffRows = (window.electronAPI && window.electronAPI.staff) ? await window.electronAPI.staff.list({ search: '' }) : []
+        staffLoaded = true
+        renderStaffRows()
+      }catch(e){
+        console.error('loadStaff', e)
+        staffRows = []
+        renderStaffRows()
+        toast('Failed to load staff accounts','error')
+      }
+    }
+
+    function openStaffModal(row){
+      var isEdit = !!(row && row.id)
+      setText('staffModalTitle', isEdit ? 'Edit Staff Account' : 'Add Staff Account')
+      var form = $('staffForm'); if(form) form.reset()
+      if($('staffId')) $('staffId').value = isEdit ? row.id : ''
+      if($('staffFullName')) $('staffFullName').value = isEdit ? (row.full_name || '') : ''
+      if($('staffUsername')) $('staffUsername').value = isEdit ? (row.username || '') : ''
+      if($('staffPassword')) {
+        $('staffPassword').value = ''
+        $('staffPassword').required = !isEdit
+        $('staffPassword').placeholder = isEdit ? 'Leave blank to keep current password' : 'Minimum 6 characters'
+      }
+      if($('staffRole')) $('staffRole').value = (isEdit && row.role === 'admin') ? 'admin' : 'staff'
+      if($('staffStatus')) $('staffStatus').value = (isEdit && row.status === 'inactive') ? 'inactive' : 'active'
+      openOverlay('staffOverlay')
+    }
+
+    async function submitStaff(e){
+      e.preventDefault()
+      var id = $('staffId') ? $('staffId').value : ''
+      var payload = {
+        full_name: $('staffFullName') ? $('staffFullName').value.trim() : '',
+        username: $('staffUsername') ? $('staffUsername').value.trim() : '',
+        password: $('staffPassword') ? $('staffPassword').value : '',
+        role: $('staffRole') ? $('staffRole').value : 'staff',
+        status: $('staffStatus') ? $('staffStatus').value : 'active'
+      }
+      if(!payload.full_name){ toast('Full name is required','error'); return }
+      if(!payload.username){ toast('Username is required','error'); return }
+      if(!id && (!payload.password || payload.password.length < 6)){ toast('Password must be at least 6 characters','error'); return }
+      var btn = $('staffSaveBtn')
+      if(btn){ btn.disabled = true; btn.textContent = 'Saving…' }
+      try{
+        var res = id
+          ? await window.electronAPI.staff.update(id, payload)
+          : await window.electronAPI.staff.create(payload)
+        if(!res || !res.success) throw new Error((res && res.error) || 'Unable to save staff account')
+        closeOverlay('staffOverlay')
+        await loadStaff()
+        toast(id ? 'Staff account updated' : 'Staff account added', 'success')
+      }catch(err){
+        toast(err && err.message ? err.message : 'Failed to save staff account', 'error')
+      }finally{
+        if(btn){ btn.disabled = false; btn.textContent = 'Save Account' }
+      }
+    }
+
+    async function deleteStaff(id){
+      try{
+        var res = await window.electronAPI.staff.delete(id)
+        if(!res || !res.success) throw new Error((res && res.error) || 'Unable to delete staff account')
+        await loadStaff()
+        toast('Staff account deleted','success')
+      }catch(err){
+        toast(err && err.message ? err.message : 'Failed to delete staff account','error')
+      }
+    }
+
+    ;(function(){
+      window._renderStaffPage = function(){ if(!staffLoaded) loadStaff(); else renderStaffRows() }
+      var add = $('staffAddBtn'); if(add) add.addEventListener('click', function(){ openStaffModal(null) })
+      var refresh = $('staffRefreshBtn'); if(refresh) refresh.addEventListener('click', function(){ loadStaff(); toast('Staff refreshed','success') })
+      var search = $('staffSearch'); if(search) search.addEventListener('input', function(){ staffSearch = search.value.trim(); renderStaffRows() })
+      var form = $('staffForm'); if(form) form.addEventListener('submit', submitStaff)
+      var close = $('staffClose'); if(close) close.addEventListener('click', function(){ closeOverlay('staffOverlay') })
+      var cancel = $('staffCancel'); if(cancel) cancel.addEventListener('click', function(){ closeOverlay('staffOverlay') })
+      var overlay = $('staffOverlay'); if(overlay) overlay.addEventListener('click', function(e){ if(e.target===overlay) closeOverlay('staffOverlay') })
     })()
 
     // ── SETTINGS / PROFILE / NOTIFICATIONS / ABOUT ──
@@ -1393,6 +1612,50 @@
       catch(e){ s = Object.assign({}, defaultSettings) }
       if(!s.reportEmail || s.reportEmail === 'admin@gcashpos.local') s.reportEmail = s.profileEmail || defaultSettings.profileEmail
       return s
+    }
+
+    function getCurrentUser(){
+      try { return JSON.parse(localStorage.getItem('gcashPosCurrentUser') || '{}') }
+      catch(e){ return {} }
+    }
+
+    function isAdminUser(user){
+      return ((user || getCurrentUser()).role || '').toLowerCase() === 'admin'
+    }
+
+    function getDisplayProfile(s, currentUser){
+      currentUser = currentUser || getCurrentUser()
+      var admin = isAdminUser(currentUser)
+      var name = admin
+        ? (s.profileName || currentUser.full_name || currentUser.username || 'Administrator')
+        : (currentUser.full_name || currentUser.username || 'Staff User')
+      var role = admin ? 'POS Administrator' : 'POS Staff'
+      return {
+        profileName: name,
+        profileRole: role,
+        profileInitials: admin ? (s.profileInitials || initialsFromName(name)) : initialsFromName(name),
+        profilePhoto: admin ? (s.profilePhoto || '') : ''
+      }
+    }
+
+    function syncReportEmailField(s, currentUser){
+      var emailEl = $('reportEmail')
+      if(!emailEl) return
+      currentUser = currentUser || getCurrentUser()
+      var admin = isAdminUser(currentUser)
+      if(admin){
+        emailEl.disabled = false
+        emailEl.type = 'email'
+        emailEl.title = ''
+        emailEl.placeholder = 'receiver@email.com'
+        if(!emailEl.value || emailEl.value === '············' || emailEl.value === 'admin@gcashpos.local') emailEl.value = s.reportEmail || s.profileEmail || ''
+      } else {
+        emailEl.type = 'text'
+        emailEl.value = '············'
+        emailEl.placeholder = '············'
+        emailEl.disabled = true
+        emailEl.title = 'Only admin can view or edit this email'
+      }
     }
 
     function saveSettingsObj(s){ localStorage.setItem('gcashPosSettings', JSON.stringify(s)) }
@@ -1417,38 +1680,53 @@
 
     function applySettings(){
       var s = getSettings()
+      var currentUser = getCurrentUser()
+      var display = getDisplayProfile(s, currentUser)
+      var admin = isAdminUser(currentUser)
       document.body.classList.toggle('compact-mode', !!s.compact)
-      setText('profileNameTop', s.profileName)
-      setText('profileNameMenu', s.profileName)
-      setText('profileRoleMenu', s.profileRole)
-      setAvatarVisual($('profileAvatar'), s)
-      setAvatarVisual($('profileAvatarMenu'), s)
-      setAvatarVisual($('profilePhotoPreview'), s)
+      setText('profileNameTop', display.profileName)
+      setText('profileNameMenu', display.profileName)
+      setText('profileRoleMenu', display.profileRole)
+      setAvatarVisual($('profileAvatar'), display)
+      setAvatarVisual($('profileAvatarMenu'), display)
+      setAvatarVisual($('profilePhotoPreview'), display)
       var dashSub = document.querySelector('#page-dashboard .page-sub')
-      if(dashSub) dashSub.textContent = 'Welcome back, ' + s.profileName
+      if(dashSub) dashSub.textContent = 'Welcome back, ' + display.profileName
+      document.querySelectorAll('.nav-item[data-page="staff"], .nav-item[data-page="settings"], .nav-item[data-page="about"]').forEach(function(item){ item.style.display = admin ? '' : 'none' })
+      ;['profileSettingsBtn','profileAboutBtn'].forEach(function(id){ var el=$(id); if(el) el.style.display = admin ? '' : 'none' })
+      var activePage = document.querySelector('.page.active')
+      if(!admin && activePage && ['page-staff','page-settings','page-about'].includes(activePage.id) && window.showPage) window.showPage('dashboard')
       var fee = $('fServiceFee')
       if(fee && !fee.value) fee.value = s.defaultFee || '0'
-      var reportEmailEl = $('reportEmail')
-      if(reportEmailEl && (!reportEmailEl.value || reportEmailEl.value === 'admin@gcashpos.local')) reportEmailEl.value = s.reportEmail || s.profileEmail || ''
+      syncReportEmailField(s, currentUser)
       updateNotifications()
     }
 
     function renderSettingsPage(){
       var s = getSettings()
-      ;[['setBusinessName','businessName'],['setBranch','branch'],['setReceiptFooter','receiptFooter'],['setDefaultFee','defaultFee'],['setProfileName','profileName'],['setProfileRole','profileRole'],['setProfileEmail','profileEmail'],['setProfileInitials','profileInitials'],['setSmtpHost','smtpHost'],['setSmtpPort','smtpPort'],['setSmtpUser','smtpUser'],['setSmtpFrom','smtpFrom'],['setSmtpPass','smtpPass']].forEach(function(pair){ var el=$(pair[0]); if(el) el.value = s[pair[1]] || '' })
+      var currentUser = getCurrentUser()
+      var admin = isAdminUser(currentUser)
+      var display = getDisplayProfile(s, currentUser)
+      ;[['setBusinessName','businessName'],['setBranch','branch'],['setReceiptFooter','receiptFooter'],['setDefaultFee','defaultFee'],['setSmtpHost','smtpHost'],['setSmtpPort','smtpPort'],['setSmtpUser','smtpUser'],['setSmtpFrom','smtpFrom'],['setSmtpPass','smtpPass']].forEach(function(pair){ var el=$(pair[0]); if(el) el.value = s[pair[1]] || '' })
+      ;[['setProfileName', admin ? s.profileName : display.profileName],['setProfileRole', display.profileRole],['setProfileEmail', admin ? s.profileEmail : ''],['setProfileInitials', display.profileInitials]].forEach(function(pair){ var el=$(pair[0]); if(el) el.value = pair[1] || '' })
+      ;['setProfileName','setProfileRole','setProfileEmail','setProfileInitials','profilePhotoBtn','profilePhotoRemoveBtn'].forEach(function(id){ var el=$(id); if(el) el.disabled = !admin })
       var sec=$('setSmtpSecure'); if(sec) sec.value = String(s.smtpSecure === true || s.smtpSecure === 'true')
       var c=$('setCompact'); if(c) c.checked = !!s.compact
       var n=$('setNotifDot'); if(n) n.checked = !!s.notifDot
       var a=$('setAutoRefresh'); if(a) a.checked = !!s.autoRefresh
-      setAvatarVisual($('profilePhotoPreview'), s)
-      setText('settingsStatus', 'Settings loaded')
+      setAvatarVisual($('profilePhotoPreview'), display)
+      setText('settingsStatus', admin ? 'Settings loaded' : 'Settings loaded — staff profile is managed by administrator')
     }
 
     function collectSettings(){
       var s = getSettings()
-      ;[['setBusinessName','businessName'],['setBranch','branch'],['setReceiptFooter','receiptFooter'],['setDefaultFee','defaultFee'],['setProfileName','profileName'],['setProfileRole','profileRole'],['setProfileEmail','profileEmail'],['setProfileInitials','profileInitials'],['setSmtpHost','smtpHost'],['setSmtpPort','smtpPort'],['setSmtpUser','smtpUser'],['setSmtpFrom','smtpFrom'],['setSmtpPass','smtpPass']].forEach(function(pair){ var el=$(pair[0]); if(el) s[pair[1]] = el.value.trim() })
+      var admin = isAdminUser()
+      ;[['setBusinessName','businessName'],['setBranch','branch'],['setReceiptFooter','receiptFooter'],['setDefaultFee','defaultFee'],['setSmtpHost','smtpHost'],['setSmtpPort','smtpPort'],['setSmtpUser','smtpUser'],['setSmtpFrom','smtpFrom'],['setSmtpPass','smtpPass']].forEach(function(pair){ var el=$(pair[0]); if(el) s[pair[1]] = el.value.trim() })
+      if(admin){
+        ;[['setProfileName','profileName'],['setProfileRole','profileRole'],['setProfileEmail','profileEmail'],['setProfileInitials','profileInitials']].forEach(function(pair){ var el=$(pair[0]); if(el) s[pair[1]] = el.value.trim() })
+      }
       var sec=$('setSmtpSecure'); if(sec) s.smtpSecure = sec.value
-      if($('reportEmail')) s.reportEmail = $('reportEmail').value.trim() || s.profileEmail
+      if(admin && $('reportEmail')) s.reportEmail = $('reportEmail').value.trim() || s.profileEmail
       if(!s.reportEmail || s.reportEmail === 'admin@gcashpos.local') s.reportEmail = s.profileEmail
       if(!s.profileInitials) s.profileInitials = initialsFromName(s.profileName)
       s.compact = !!($('setCompact') && $('setCompact').checked)
@@ -1492,6 +1770,7 @@
     }
 
     function openCropFromFile(file){
+      if(!isAdminUser()) { toast('Staff profile is managed by administrator','info'); return }
       if(!file) return
       var reader = new FileReader()
       reader.onload = function(){
@@ -1507,6 +1786,7 @@
     }
 
     function applyCroppedPhoto(){
+      if(!isAdminUser()) { closeOverlay('cropOverlay'); toast('Staff profile is managed by administrator','info'); return }
       var srcCanvas = $('cropCanvas'); if(!srcCanvas) return
       var out = document.createElement('canvas')
       out.width = 220; out.height = 220
@@ -1577,7 +1857,7 @@
       window._renderSettingsPage = renderSettingsPage
       window._renderAboutPage = renderAboutPage
       window._updateNotifications = updateNotifications
-      window._refreshAuxPages = function(){ renderReportsPage(); updateNotifications(); renderAboutPage(); applySettings() }
+      window._refreshAuxPages = function(){ renderReportsPage(); updateNotifications(); renderAboutPage(); applySettings(); if(staffLoaded) renderStaffRows() }
       var save=$('settingsSaveBtn'); if(save) save.addEventListener('click', function(){ saveSettings(true) })
       ;['setBusinessName','setBranch','setReceiptFooter','setDefaultFee','setProfileName','setProfileRole','setProfileEmail','setProfileInitials','setSmtpHost','setSmtpPort','setSmtpUser','setSmtpFrom','setSmtpPass','setSmtpSecure','setCompact','setNotifDot','setAutoRefresh','reportEmail'].forEach(function(id){
         var el = $(id)
@@ -1610,7 +1890,7 @@
       var chip=$('profileChip'); if(chip) chip.addEventListener('click', function(e){ e.stopPropagation(); toggleDropdown('profileMenu') })
       var ps=$('profileSettingsBtn'); if(ps) ps.addEventListener('click', function(){ closeDropdowns(); if(window.showPage) window.showPage('settings') })
       var pa=$('profileAboutBtn'); if(pa) pa.addEventListener('click', function(){ closeDropdowns(); if(window.showPage) window.showPage('about') })
-      var pl=$('profileLogoutBtn'); if(pl) pl.addEventListener('click', function(){ closeDropdowns(); window.location.href='./login.html' })
+      var pl=$('profileLogoutBtn'); if(pl) pl.addEventListener('click', function(){ closeDropdowns(); try { localStorage.removeItem('gcashPosCurrentUser') } catch(e){} window.location.href='./login.html' })
       var ar=$('aboutOpenReports'); if(ar) ar.addEventListener('click', function(){ if(window.showPage) window.showPage('reports') })
       var as=$('aboutOpenSettings'); if(as) as.addEventListener('click', function(){ if(window.showPage) window.showPage('settings') })
       document.addEventListener('click', closeDropdowns)

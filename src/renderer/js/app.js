@@ -1,14 +1,25 @@
 // Shared renderer logic (login + common UI)
 document.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('loginSplash')
+  if (splash) {
+    setTimeout(() => {
+      splash.classList.add('hide')
+      setTimeout(() => splash.remove(), 450)
+    }, 1500)
+  }
+
   // Attach login handler if on login page
   const form = document.getElementById('loginForm')
   if (form) {
+    const roleInput = document.getElementById('loginRole')
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
       const uEl = document.getElementById('username')
       const pEl = document.getElementById('password')
       const u = uEl ? uEl.value : ''
       const p = pEl ? pEl.value : ''
+      const role = roleInput ? roleInput.value : undefined
       const btn = form.querySelector('button[type="submit"]')
 
       // UI: disable inputs and show loading on button
@@ -16,10 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (uEl) uEl.disabled = true
       if (pEl) pEl.disabled = true
       try {
-        const res = await window.electronAPI.auth.login(u, p)
+        const res = await window.electronAPI.auth.login(u, p, role)
         console.log('login response', res)
         const errEl = document.getElementById('loginErr')
         if (res && res.success) {
+          try { localStorage.setItem('gcashPosCurrentUser', JSON.stringify(res.user || {})) } catch (e) {}
           window.location.href = './index.html'
         } else {
           const msg = (res && res.error) ? res.error : 'Invalid username or password'
@@ -38,6 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pEl) { pEl.value = ''; pEl.disabled = false; pEl.focus(); }
       } finally {
         if (btn) { btn.disabled = false; btn.classList.remove('loading') }
+        if (uEl) uEl.disabled = false
+        if (pEl) pEl.disabled = false
       }
     })
   }
@@ -100,6 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── PAGE NAVIGATION ──
   window.showPage = function(name) {
+    let role = ''
+    try { role = (JSON.parse(localStorage.getItem('gcashPosCurrentUser') || '{}').role || '').toLowerCase() } catch (e) {}
+    if (role !== 'admin' && ['staff', 'settings', 'about'].includes(name)) {
+      if (typeof window._toast === 'function') window._toast('Only Admin can open this section', 'error')
+      name = 'dashboard'
+    }
     document.querySelectorAll('.page').forEach(function(s){ s.classList.remove('active') })
     var target = document.getElementById('page-' + name)
     if (target) target.classList.add('active')
@@ -111,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (name === 'monthly-sales' && typeof window._renderMonthlyPage === 'function') window._renderMonthlyPage()
     if (name === 'reports'       && typeof window._renderReportsPage === 'function') window._renderReportsPage()
     if (name === 'settings'      && typeof window._renderSettingsPage === 'function') window._renderSettingsPage()
+    if (name === 'staff'         && typeof window._renderStaffPage === 'function') window._renderStaffPage()
     if (name === 'about'         && typeof window._renderAboutPage === 'function') window._renderAboutPage()
   }
 

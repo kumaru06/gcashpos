@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 // Expose a minimal, stable API to the renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   auth: {
-    login: (username, password) => ipcRenderer.invoke('auth:login', { username, password }),
+    login: (username, password, role) => ipcRenderer.invoke('auth:login', { username, password, role }),
     logout: () => ipcRenderer.invoke('auth:logout')
   },
   db: {
@@ -21,6 +21,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   email: {
     sendReport: (payload) => ipcRenderer.invoke('email:send-report', payload)
+  },
+  staff: {
+    list: (opts) => ipcRenderer.invoke('staff:list', opts),
+    create: (payload) => ipcRenderer.invoke('staff:create', payload),
+    update: (id, payload) => ipcRenderer.invoke('staff:update', id, payload),
+    delete: (id) => ipcRenderer.invoke('staff:delete', id)
+  },
+  pdf: {
+    saveTransaction: (tx) => ipcRenderer.invoke('pdf:save-transaction', tx)
   },
   settings: {
     get: (key) => ipcRenderer.invoke('settings:get', key),

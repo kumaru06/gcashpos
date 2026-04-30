@@ -11,6 +11,12 @@
   <link rel="stylesheet" href="./css/styles.css"/>
 </head>
 <body class="lp">
+  <div class="login-splash" id="loginSplash" aria-label="Loading GCash POS">
+    <div class="login-splash-inner">
+      <img src="./assets/logo/gcashloading.png" class="login-splash-logo" alt="GCash Loading"/>
+      <div class="login-spinner" aria-hidden="true"></div>
+    </div>
+  </div>
   <div class="lp-wrap">
     <div class="lp-card">
       <div class="lp-logo">
@@ -27,6 +33,13 @@
         <div class="lp-fg">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" required/>
+        </div>
+        <div class="lp-fg lp-role-select">
+          <label for="loginRole">Continue as</label>
+          <select id="loginRole" name="role">
+            <option value="admin">Administrator</option>
+            <option value="staff">Staff</option>
+          </select>
         </div>
         <label class="lp-rem">
           <input id="remember" name="remember" type="checkbox"/> Remember me

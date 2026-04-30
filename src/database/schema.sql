@@ -3,6 +3,10 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
+  full_name TEXT,
+  role TEXT DEFAULT 'staff',
+  status TEXT DEFAULT 'active',
+  updated_at TEXT,
   created_at TEXT
 );
 

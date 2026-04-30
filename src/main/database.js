@@ -16,9 +16,16 @@ async function initDatabase () {
 
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
-  db.prepare(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT, created_at TEXT)`).run()
+  db.prepare(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT, full_name TEXT, role TEXT DEFAULT 'staff', status TEXT DEFAULT 'active', updated_at TEXT, created_at TEXT)`).run()
   db.prepare(`CREATE TABLE IF NOT EXISTS customers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT, created_at TEXT)`).run()
   db.prepare(`CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, transaction_id TEXT, customer_id INTEGER, customer_name TEXT, type TEXT, amount REAL, status TEXT, sync_status TEXT DEFAULT 'pending', created_at TEXT)`).run()
+  // Add staff account columns if upgrading from older DB
+  try { db.prepare('ALTER TABLE users ADD COLUMN full_name TEXT').run() } catch(e){}
+  try { db.prepare("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'staff'").run() } catch(e){}
+  try { db.prepare("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'").run() } catch(e){}
+  try { db.prepare('ALTER TABLE users ADD COLUMN updated_at TEXT').run() } catch(e){}
+  try { db.prepare("UPDATE users SET role = 'admin' WHERE username = 'admin'").run() } catch(e){}
+  try { db.prepare("UPDATE users SET status = 'active' WHERE status IS NULL OR status = ''").run() } catch(e){}
   // Add customer_name column if upgrading from older DB
   try { db.prepare('ALTER TABLE transactions ADD COLUMN customer_name TEXT').run() } catch(e){}
   // Add service_fee column if upgrading from older DB
@@ -61,11 +68,24 @@ function getTransactions ({ page = 1, pageSize = 20, search = '' } = {}) {
   return { rows, total }
 }
 
+function generateReferenceNumber () {
+  if (!db) return `${Date.now()}`
+  for (let i = 0; i < 25; i++) {
+    const ref = `${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`
+    const exists = db.prepare('SELECT 1 FROM transactions WHERE transaction_id = ?').get(ref)
+    if (!exists) return ref
+  }
+  throw new Error('Unable to generate unique reference number')
+}
+
 function addTransaction (tx) {
   if (!db) return null
-  const stmt = db.prepare('INSERT OR IGNORE INTO transactions (transaction_id, customer_id, customer_name, type, amount, service_fee, status, sync_status, created_at) VALUES (@transaction_id, @customer_id, @customer_name, @type, @amount, @service_fee, @status, @sync_status, @created_at)')
+  const referenceNumber = String(tx.transaction_id || '').trim() || generateReferenceNumber()
+  const duplicate = db.prepare('SELECT id FROM transactions WHERE transaction_id = ?').get(referenceNumber)
+  if (duplicate) throw new Error('Reference number already exists')
+  const stmt = db.prepare('INSERT INTO transactions (transaction_id, customer_id, customer_name, type, amount, service_fee, status, sync_status, created_at) VALUES (@transaction_id, @customer_id, @customer_name, @type, @amount, @service_fee, @status, @sync_status, @created_at)')
   const info = stmt.run({
-    transaction_id: tx.transaction_id || `txn_${Date.now()}`,
+    transaction_id: referenceNumber,
     customer_id: tx.customer_id || null,
     customer_name: tx.customer_name || null,
     type: tx.type || 'cash_in',
@@ -75,7 +95,7 @@ function addTransaction (tx) {
     sync_status: tx.sync_status || 'pending',
     created_at: tx.created_at || new Date().toISOString()
   })
-  return { id: info.lastInsertRowid }
+  return { id: info.lastInsertRowid, transaction_id: referenceNumber }
 }
 
 function updateTransaction (id, updates) {
@@ -108,11 +128,51 @@ function getUserByUsername (username) {
   return db.prepare('SELECT * FROM users WHERE username = ?').get(username)
 }
 
-function createUser (username, password_hash) {
+function listUsers ({ search = '' } = {}) {
+  if (!db) return []
+  const where = search ? 'WHERE username LIKE @q OR full_name LIKE @q OR role LIKE @q OR status LIKE @q' : ''
+  return db.prepare(`SELECT id, username, full_name, role, status, created_at, updated_at FROM users ${where} ORDER BY created_at DESC, id DESC`).all({ q: `%${search}%` })
+}
+
+function createUser (username, password_hash, opts = {}) {
   if (!db) return null
-  const stmt = db.prepare('INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)')
-  const info = stmt.run(username, password_hash, new Date().toISOString())
+  const now = new Date().toISOString()
+  const stmt = db.prepare('INSERT INTO users (username, password_hash, full_name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+  const info = stmt.run(username, password_hash, opts.full_name || '', opts.role || 'staff', opts.status || 'active', now, now)
   return { id: info.lastInsertRowid }
+}
+
+function updateUser (id, updates) {
+  if (!db) return null
+  const row = db.prepare('SELECT id, role, status FROM users WHERE id = ?').get(id)
+  if (!row) return { changes: 0 }
+  const nextRole = Object.prototype.hasOwnProperty.call(updates, 'role') ? updates.role : row.role
+  const nextStatus = Object.prototype.hasOwnProperty.call(updates, 'status') ? updates.status : row.status
+  if ((row.role || '').toLowerCase() === 'admin' && ((nextRole || '').toLowerCase() !== 'admin' || (nextStatus || 'active').toLowerCase() !== 'active')) {
+    const adminCount = db.prepare("SELECT COUNT(1) as c FROM users WHERE role = 'admin' AND status = 'active'").get().c
+    if (adminCount <= 1) throw new Error('At least one active admin account is required')
+  }
+  const allowed = ['username', 'password_hash', 'full_name', 'role', 'status']
+  const patch = {}
+  allowed.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(updates, key)) patch[key] = updates[key]
+  })
+  if (Object.keys(patch).length === 0) return { changes: 0 }
+  patch.updated_at = new Date().toISOString()
+  const set = Object.keys(patch).map(k => `${k} = @${k}`).join(', ')
+  const info = db.prepare(`UPDATE users SET ${set} WHERE id = @id`).run(Object.assign({ id }, patch))
+  return { changes: info.changes }
+}
+
+function deleteUser (id) {
+  if (!db) return null
+  const row = db.prepare('SELECT id, role FROM users WHERE id = ?').get(id)
+  if (!row) return { changes: 0 }
+  if ((row.role || '').toLowerCase() === 'admin') {
+    throw new Error('Administrator accounts cannot be deleted')
+  }
+  const info = db.prepare('DELETE FROM users WHERE id = ?').run(id)
+  return { changes: info.changes }
 }
 
 function countUsers () {
@@ -120,5 +180,5 @@ function countUsers () {
   return db.prepare('SELECT COUNT(1) as c FROM users').get().c
 }
 
-module.exports = { initDatabase, getSummary, getTransactions, addTransaction, updateTransaction, deleteTransaction, deleteTestData, getUserByUsername, createUser, countUsers }
+module.exports = { initDatabase, getSummary, getTransactions, addTransaction, updateTransaction, deleteTransaction, deleteTestData, getUserByUsername, listUsers, createUser, updateUser, deleteUser, countUsers }
 

@@ -48,7 +48,7 @@ function buildReportCsv (report = {}) {
   const summary = report.summary || {}
   const lines = []
 
-  lines.push(['Transaction ID', 'Date', 'Customer', 'Type', 'Amount', 'Service Fee', 'Status'].map(csvEscape).join(','))
+  lines.push(['Reference Number', 'Date', 'Customer', 'Type', 'Amount', 'Service Fee', 'Status'].map(csvEscape).join(','))
   rows.forEach((r) => {
     lines.push([
       r.transaction_id || '',
@@ -102,7 +102,7 @@ function buildReportHtml (report = {}) {
       <table style="border-collapse:collapse;width:100%;max-width:900px;font-size:13px">
         <thead>
           <tr style="background:#f8faff">
-            <th style="text-align:left;padding:8px;border:1px solid #e5e7eb">Transaction ID</th>
+            <th style="text-align:left;padding:8px;border:1px solid #e5e7eb">Reference Number</th>
             <th style="text-align:left;padding:8px;border:1px solid #e5e7eb">Date</th>
             <th style="text-align:left;padding:8px;border:1px solid #e5e7eb">Customer</th>
             <th style="text-align:left;padding:8px;border:1px solid #e5e7eb">Type</th>

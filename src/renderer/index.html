@@ -153,7 +153,7 @@
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg>
             </div>
             <div class="scard-info">
-              <div class="scard-lbl" id="lblNet">Net Today</div>
+              <div class="scard-lbl" id="lblNet">Total Today</div>
               <div class="scard-val card-anim" id="salesGrowth">₱0</div>
             </div>
           </div>
@@ -205,9 +205,9 @@
                 <svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg>
               </div>
               <div class="daily-card-body">
-                <div class="daily-card-lbl">Net Today</div>
+                <div class="daily-card-lbl">Total Today</div>
                 <div class="daily-card-val" id="dailyNet">₱0</div>
-                <div class="daily-card-count" id="dailyNetNote">In − Out</div>
+                <div class="daily-card-count" id="dailyNetNote">In + Out</div>
               </div>
             </div>
           </div>
@@ -330,7 +330,7 @@
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg>
             </div>
             <div class="scard-info">
-              <div class="scard-lbl">Net (In + Out)</div>
+              <div class="scard-lbl">Total (In + Out)</div>
               <div class="scard-val" id="dsNet">₱0</div>
               <div class="scard-sub" id="dsTxnTotal" style="font-size:11px;color:#86EFAC;margin-top:2px">0 total transactions</div>
             </div>
@@ -429,7 +429,7 @@
           <div class="scard green">
             <div class="scard-ico"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg></div>
             <div class="scard-info">
-              <div class="scard-lbl" id="msLblNet">Net — Jan</div>
+              <div class="scard-lbl" id="msLblNet">Total — Jan</div>
               <div class="scard-val" id="msNet">₱0</div>
               <div class="scard-sub" id="msTxnTotal" style="font-size:11px;color:#86EFAC;margin-top:2px">0 total transactions</div>
             </div>
@@ -552,12 +552,12 @@
           <div class="fg"><label>To</label><input type="date" id="reportTo"/></div>
           <div class="fg"><label>Status</label><select id="reportStatus"><option value="success">Success Only</option><option value="">All Status</option><option value="pending">Pending</option><option value="failed">Failed</option></select></div>
           <div class="fg"><label>Email To</label><input type="email" id="reportEmail" placeholder="receiver@email.com"/></div>
-          <div class="fg"><label>&nbsp;</label><button class="btn btn-primary" id="reportRunBtn">Generate</button></div>
+          <div class="fg"><label>&nbsp;</label><button type="button" class="btn btn-primary" id="reportRunBtn">Generate</button></div>
         </div>
         <div class="cards-grid report-grid">
           <div class="scard blue"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="scard-info"><div class="scard-lbl">Cash In</div><div class="scard-val" id="reportCashIn">₱0</div></div></div>
           <div class="scard indigo"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div class="scard-info"><div class="scard-lbl">Cash Out</div><div class="scard-val" id="reportCashOut">₱0</div></div></div>
-          <div class="scard green"><div class="scard-ico"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg></div><div class="scard-info"><div class="scard-lbl">Net (In + Out)</div><div class="scard-val" id="reportNet">₱0</div></div></div>
+          <div class="scard green"><div class="scard-ico"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="19" text-anchor="middle" font-size="19" font-family="Arial, sans-serif" font-weight="bold" fill="currentColor">&#x20B1;</text></svg></div><div class="scard-info"><div class="scard-lbl">Total (In + Out)</div><div class="scard-val" id="reportNet">₱0</div></div></div>
           <div class="scard amber"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="scard-info"><div class="scard-lbl">Service Fee</div><div class="scard-val" id="reportServiceFee">₱0</div></div></div>
         </div>
         <div class="charts-row">
@@ -631,16 +631,15 @@
       <section class="page" id="page-staff">
         <div class="page-hdr">
           <div><h1 class="page-title">Manage Staff Accounts</h1><p class="page-sub">Add, edit, disable, and remove staff login accounts.</p></div>
-          <button class="btn btn-primary" id="staffAddBtn">
+          <button type="button" class="btn btn-primary" id="staffAddBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Staff Account
           </button>
         </div>
         <div class="cards-grid staff-summary-grid">
-          <div class="scard blue"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="scard-info"><div class="scard-lbl">Total Accounts</div><div class="scard-val" id="staffTotal">0</div></div></div>
+          <div class="scard blue"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="scard-info"><div class="scard-lbl">Total Staff</div><div class="scard-val" id="staffTotal">0</div></div></div>
           <div class="scard green"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="scard-info"><div class="scard-lbl">Active Staff</div><div class="scard-val" id="staffActive">0</div></div></div>
-          <div class="scard amber"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="scard-info"><div class="scard-lbl">Administrators</div><div class="scard-val" id="staffAdmins">0</div></div></div>
-          <div class="scard indigo"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="scard-info"><div class="scard-lbl">Inactive</div><div class="scard-val" id="staffInactive">0</div></div></div>
+          <div class="scard indigo"><div class="scard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="scard-info"><div class="scard-lbl">Inactive Staff</div><div class="scard-val" id="staffInactive">0</div></div></div>
         </div>
         <div class="tbl-card">
           <div class="tbl-hdr">
@@ -714,7 +713,7 @@
         </div>
         <div class="frow">
           <div class="fg"><label>Password</label><input id="staffPassword" type="password" placeholder="Minimum 6 characters"/></div>
-          <div class="fg"><label>Role</label><select id="staffRole"><option value="staff">Staff</option><option value="admin">Administrator</option></select></div>
+          <div class="fg"><label>Role</label><select id="staffRole" disabled title="Staff accounts only. Administrators are managed from the web panel."><option value="staff" selected>Staff</option></select></div>
         </div>
         <div class="frow">
           <div class="fg"><label>Status</label><select id="staffStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
@@ -749,8 +748,8 @@
     <div class="confirm-title" id="confirmTitle">Delete Transaction?</div>
     <div class="confirm-msg" id="confirmMsg">This action cannot be undone.</div>
     <div class="confirm-ftr">
-      <button class="btn btn-outline" id="confirmCancel">Cancel</button>
-      <button class="btn btn-danger" id="confirmOk">Delete</button>
+      <button type="button" class="btn btn-outline" id="confirmCancel">Cancel</button>
+      <button type="button" class="btn btn-danger" id="confirmOk">Delete</button>
     </div>
   </div>
 </div>

@@ -3,6 +3,7 @@ const fs = require('fs')
 const authService = require('./authService')
 const db = require('./database')
 const syncService = require('./syncService')
+const presenceService = require('./presenceService')
 const emailService = require('./emailService')
 
 function esc (value) {
@@ -47,59 +48,138 @@ function transactionPdfHtml (tx = {}) {
 }
 
 function registerIpcHandlers () {
-  try { ipcMain.removeHandler('email:send-report') } catch (e) {}
-  try { ipcMain.removeHandler('pdf:save-transaction') } catch (e) {}
+  const handlerNames = [
+    'auth:login', 'auth:logout', 'auth:getSession', 'auth:getRemembered',
+    'db:get-summary', 'db:get-transactions', 'db:add-transaction', 'db:update-transaction', 'db:delete-transaction', 'db:delete-test-data',
+    'staff:list', 'staff:create', 'staff:update', 'staff:delete',
+    'sync:status', 'sync:force', 'connectivity:check',
+    'email:send-report', 'pdf:save-transaction',
+    'settings:get', 'settings:set'
+  ]
+  handlerNames.forEach((name) => {
+    try { ipcMain.removeHandler(name) } catch (e) {}
+  })
 
-  ipcMain.handle('auth:login', async (event, { username, password, role }) => {
+  ipcMain.handle('auth:login', async (event, { username, password, role, rememberMe }) => {
     try {
-      console.log('auth:login attempt for', username)
-      const user = await authService.verifyUser(username, password, role)
-      if (!user) {
-        console.log('auth:login failed for', username)
-        return { success: false, error: 'Invalid credentials' }
+      console.log('auth:login attempt for', username, 'role', role)
+      const result = await authService.login(username, password, role, { rememberMe: !!rememberMe })
+      if (!result.success) {
+        console.log('auth:login failed for', username, result.error)
+        return result
       }
-      console.log('auth:login success for', username)
-      return { success: true, user }
+      console.log('auth:login success for', username, result.offline ? '(offline cache)' : '(cloud)')
+      return result
     } catch (err) {
       console.error('auth:login error', err)
       return { success: false, error: err.message }
     }
   })
 
+  ipcMain.handle('auth:logout', async () => {
+    try {
+      return await authService.logout()
+    } catch (err) {
+      console.error('auth:logout error', err)
+      return { success: false, error: err.message }
+    }
+  })
+
+  ipcMain.handle('auth:getSession', async () => {
+    const user = authService.getCurrentUser()
+    if (!user) return { success: false, user: null }
+    return { success: true, user }
+  })
+
+  ipcMain.handle('auth:getRemembered', async () => {
+    return { success: true, remembered: authService.getRememberedLogin() }
+  })
+
   ipcMain.handle('db:get-summary', async () => {
-    return await db.getSummary()
+    authService.requireSession()
+    return await db.getSummary(authService.getOwnerUsername())
   })
 
   ipcMain.handle('db:get-transactions', async (event, opts = {}) => {
-    return await db.getTransactions(opts)
+    authService.requireSession()
+    return await db.getTransactions({ ...opts, ownerUsername: authService.getOwnerUsername() })
   })
 
   ipcMain.handle('db:add-transaction', async (event, tx) => {
     try {
-      return await db.addTransaction(tx)
+      authService.requireSession()
+      return await db.addTransaction(tx, authService.getOwnerUsername())
     } catch (err) {
       return { success: false, error: err.message }
     }
   })
 
   ipcMain.handle('db:update-transaction', async (event, id, updates) => {
-    return await db.updateTransaction(id, updates)
+    try {
+      authService.requireSession()
+      const safe = db.sanitizeTransactionUpdates(updates || {})
+      if (db.updatesTouchMoneyFields(safe)) {
+        authService.requireAdmin()
+      }
+      return await db.updateTransaction(id, safe, authService.getOwnerUsername())
+    } catch (err) {
+      return { success: false, error: err.message, changes: 0 }
+    }
   })
 
   ipcMain.handle('db:delete-transaction', async (event, id) => {
-    return await db.deleteTransaction(id)
+    try {
+      authService.requireAdmin()
+      const owner = authService.getOwnerUsername()
+      const result = await db.deleteTransaction(id, owner)
+      // Best-effort immediate cloud delete; queue covers offline / failures.
+      const token = authService.getApiToken()
+      if (token && result && result.reference_number) {
+        try {
+          const online = await require('./apiClient').isOnline()
+          if (online) {
+            await require('./apiClient').deleteTransaction(token, result.reference_number)
+            const pending = db.getPendingCloudDeletes(owner, 50)
+            const match = pending.find(r => r.reference_number === result.reference_number)
+            if (match) db.clearPendingCloudDelete(match.id, owner)
+          }
+        } catch (e) {
+          console.warn('Immediate cloud delete failed; queued for sync', e && e.message)
+        }
+      }
+      return result
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
   })
 
   ipcMain.handle('db:delete-test-data', async () => {
-    return await db.deleteTestData()
+    try {
+      authService.requireAdmin()
+      return await db.deleteTestData(authService.getOwnerUsername())
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
   })
 
   ipcMain.handle('staff:list', async (event, opts = {}) => {
-    return await db.listUsers(opts)
+    try {
+      authService.requireAdmin()
+      const rows = await db.listUsers({
+        ...opts,
+        ownerUsername: authService.getOwnerUsername(),
+        staffOnly: true
+      })
+      return { success: true, rows: rows || [] }
+    } catch (err) {
+      console.error('staff:list error', err.message)
+      return { success: false, error: err.message, rows: [] }
+    }
   })
 
   ipcMain.handle('staff:create', async (event, payload) => {
     try {
+      authService.requireAdmin()
       return { success: true, data: await authService.createStaffAccount(payload) }
     } catch (err) {
       return { success: false, error: err.message }
@@ -108,6 +188,7 @@ function registerIpcHandlers () {
 
   ipcMain.handle('staff:update', async (event, id, payload) => {
     try {
+      authService.requireAdmin()
       return { success: true, data: await authService.updateStaffAccount(id, payload) }
     } catch (err) {
       return { success: false, error: err.message }
@@ -116,22 +197,34 @@ function registerIpcHandlers () {
 
   ipcMain.handle('staff:delete', async (event, id) => {
     try {
-      return { success: true, data: await db.deleteUser(id) }
+      authService.requireAdmin()
+      return { success: true, data: await authService.deleteStaffAccount(id) }
     } catch (err) {
       return { success: false, error: err.message }
     }
   })
 
   ipcMain.handle('sync:status', async () => {
-    return await syncService.getStatus()
+    // Read-only status for the 3s UI poll — do NOT heartbeat here (spam / soft-degrade risk).
+    const status = await syncService.getStatus()
+    let presence = null
+    try { presence = presenceService.getPresenceState() } catch (e) {}
+    return { ...status, presence }
   })
 
   ipcMain.handle('sync:force', async () => {
     return await syncService.forceSync()
   })
 
+  ipcMain.handle('connectivity:check', async () => {
+    const status = await syncService.refreshConnectionStatus()
+    const presence = await presenceService.pulseIfLoggedIn()
+    return { ...status, presence }
+  })
+
   ipcMain.handle('email:send-report', async (event, payload) => {
     try {
+      authService.requireAdmin()
       return await emailService.sendReportEmail(payload)
     } catch (err) {
       console.error('email:send-report error', err)
@@ -139,11 +232,42 @@ function registerIpcHandlers () {
     }
   })
 
-  ipcMain.handle('pdf:save-transaction', async (event, tx) => {
+  // Local app settings (API URL etc.) — separate from renderer localStorage UI prefs.
+  const settingsStore = new (require('electron-store'))({ name: 'gcashpos-settings' })
+  ipcMain.handle('settings:get', async (event, key) => {
+    if (!key) return settingsStore.store
+    return settingsStore.get(key)
+  })
+  ipcMain.handle('settings:set', async (event, key, value) => {
+    if (!key) return { success: false, error: 'Missing settings key' }
+    settingsStore.set(key, value)
+    return { success: true }
+  })
+
+  ipcMain.on('ui:toast', (event, payload) => {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (win && !win.isDestroyed()) {
+        try { win.webContents.send('ui:toast', payload || {}) } catch (e) {}
+      }
+    })
+  })
+
+  ipcMain.handle('pdf:save-transaction', async (event, txOrId) => {
     let pdfWin
     try {
+      authService.requireSession()
+      const owner = authService.getOwnerUsername()
+      let tx = null
+      const id = (txOrId && typeof txOrId === 'object') ? txOrId.id : txOrId
+      if (id != null) {
+        tx = db.getTransactionById(id, owner)
+      }
+      if (!tx) {
+        return { success: false, error: 'Transaction not found for this shop' }
+      }
+
       const parent = BrowserWindow.fromWebContents(event.sender)
-      const ref = String(tx && tx.transaction_id ? tx.transaction_id : 'transaction').replace(/[^a-z0-9-]/gi, '_')
+      const ref = String(tx.transaction_id || 'transaction').replace(/[^a-z0-9-]/gi, '_')
       const save = await dialog.showSaveDialog(parent, {
         title: 'Save Transaction PDF',
         defaultPath: `reference-${ref}.pdf`,

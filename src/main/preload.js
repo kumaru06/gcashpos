@@ -3,8 +3,10 @@ const { contextBridge, ipcRenderer } = require('electron')
 // Expose a minimal, stable API to the renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   auth: {
-    login: (username, password, role) => ipcRenderer.invoke('auth:login', { username, password, role }),
-    logout: () => ipcRenderer.invoke('auth:logout')
+    login: (username, password, role, rememberMe) => ipcRenderer.invoke('auth:login', { username, password, role, rememberMe }),
+    logout: () => ipcRenderer.invoke('auth:logout'),
+    getSession: () => ipcRenderer.invoke('auth:getSession'),
+    getRemembered: () => ipcRenderer.invoke('auth:getRemembered')
   },
   db: {
     getSummary: () => ipcRenderer.invoke('db:get-summary'),
@@ -17,7 +19,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   sync: {
     getStatus: () => ipcRenderer.invoke('sync:status'),
-    forceSync: () => ipcRenderer.invoke('sync:force')
+    forceSync: () => ipcRenderer.invoke('sync:force'),
+    checkConnectivity: () => ipcRenderer.invoke('sync:status')
   },
   email: {
     sendReport: (payload) => ipcRenderer.invoke('email:send-report', payload)
@@ -37,7 +40,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   toast: (message, level = 'info') => ipcRenderer.send('ui:toast', { message, level }),
   on: (channel, cb) => {
-    const allowed = ['app:ready', 'sync:status', 'ui:toast']
+    const allowed = ['app:ready', 'sync:status', 'ui:toast', 'auth:session-revoked']
     if (!allowed.includes(channel)) return
     ipcRenderer.on(channel, (e, ...args) => cb(...args))
   }

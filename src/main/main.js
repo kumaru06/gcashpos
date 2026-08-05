@@ -3,8 +3,42 @@ const path = require('path')
 const { registerIpcHandlers } = require('./ipcHandlers')
 const { initDatabase } = require('./database')
 const authService = require('./authService')
+const presenceService = require('./presenceService')
+
+// One POS window per machine — avoid concurrent UI races on shared SQLite.
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const wins = BrowserWindow.getAllWindows()
+    if (wins.length) {
+      const win = wins[0]
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    } else {
+      createWindow()
+    }
+  })
+}
+
+function broadcastSessionRevoked (payload) {
+  BrowserWindow.getAllWindows().forEach(function (win) {
+    if (win && !win.isDestroyed()) {
+      try { win.webContents.send('auth:session-revoked', payload) } catch (e) {}
+    }
+  })
+}
+
+let mainWindow = null
 
 function createWindow () {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+    return mainWindow
+  }
+
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -17,6 +51,11 @@ function createWindow () {
     }
   })
 
+  mainWindow = win
+  win.on('closed', () => {
+    if (mainWindow === win) mainWindow = null
+  })
+
   win.loadFile(path.join(__dirname, '..', 'renderer', 'login.html'))
   win.once('ready-to-show', () => {
     // show window (do not auto-open DevTools in normal runs)
@@ -25,6 +64,7 @@ function createWindow () {
   return win
 }
 
+if (gotLock) {
 app.whenReady().then(async () => {
   try {
     await initDatabase()
@@ -35,7 +75,11 @@ app.whenReady().then(async () => {
   }
 
   registerIpcHandlers()
-  let win = createWindow()
+  authService.setSessionRevokedHandler(broadcastSessionRevoked)
+  try {
+    require('./syncService').startAutoSync(10 * 1000)
+  } catch (e) {}
+  createWindow()
 
   // Live-reload in development: watch renderer files and reload window on change
   if (!app.isPackaged) {
@@ -45,18 +89,21 @@ app.whenReady().then(async () => {
       let reloadTimer = null
       fs.watch(watchPath, { recursive: true }, (eventType, filename) => {
         if (!filename) return
-        // debounce rapid changes
+        // Ignore noisy non-source churn
+        if (/\.(png|jpg|jpeg|gif|ico|svg|map)$/i.test(filename)) return
+        // debounce rapid changes (editing files should not thrash auth/session)
         if (reloadTimer) clearTimeout(reloadTimer)
         reloadTimer = setTimeout(() => {
           try {
-            if (win && !win.isDestroyed()) {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              try { authService.beginAuthBusy(8000) } catch (e) {}
               console.log('[dev] file changed, reloading renderer:', filename)
-              win.webContents.reloadIgnoringCache()
+              mainWindow.webContents.reloadIgnoringCache()
             }
           } catch (e) {
             console.warn('[dev] reload failed', e)
           }
-        }, 150)
+        }, 800)
       })
     } catch (e) {
       console.warn('Live-reload watcher not available', e)
@@ -65,10 +112,28 @@ app.whenReady().then(async () => {
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    else if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus()
   })
 })
+}
 
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
-// (duplicate block removed)
+
+let isQuitting = false
+app.on('before-quit', (event) => {
+  if (isQuitting) return
+  // Electron does not wait for async before-quit handlers — preventDefault + exit after offline ping.
+  event.preventDefault()
+  isQuitting = true
+  Promise.resolve()
+    .then(() => presenceService.stop({ notifyOffline: true, clearToken: true }))
+    .catch((err) => {
+      console.warn('presence cleanup on quit failed', err && err.message)
+    })
+    .finally(() => {
+      try { require('./syncService').stopAutoSync() } catch (e) {}
+      app.exit(0)
+    })
+})

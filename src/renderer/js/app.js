@@ -287,15 +287,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (name === 'about')         runHook(window._renderAboutPage)
   }
 
-  // wire sidebar nav data-page clicks
+  // wire sidebar nav — prevent link drag ghost in Electron
   document.querySelectorAll('.nav-item[data-page]').forEach(function(item) {
-    item.setAttribute('href', '#')
+    item.setAttribute('draggable', 'false')
     item.setAttribute('role', 'button')
+    item.addEventListener('dragstart', function (e) { e.preventDefault() })
     item.addEventListener('click', function (e) {
       e.preventDefault()
       e.stopPropagation()
       window.showPage(item.getAttribute('data-page'))
     })
+  })
+
+  document.querySelectorAll('.sidebar img, .sidebar svg').forEach(function(el) {
+    el.setAttribute('draggable', 'false')
+    el.addEventListener('dragstart', function (e) { e.preventDefault() })
   })
 
   // Fallback: Add Staff button even if dashboard boot partially failed

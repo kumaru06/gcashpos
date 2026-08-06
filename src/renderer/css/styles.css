@@ -1,5 +1,5 @@
 ﻿/* ═══════════════════════════════════════════════════
-   GCash POS — Main Stylesheet (class names match HTML)
+   CashPOS — Main Stylesheet (class names match HTML)
    ═══════════════════════════════════════════════════ */
 
 /* ── RESET & TOKENS ── */
@@ -64,6 +64,8 @@ html, body {
   width: 100%; max-width: 120px; height: auto;
   object-fit: contain;
   flex-shrink: 0;
+  -webkit-user-drag: none;
+  user-select: none;
   transition: opacity .18s, width .18s;
 }
 .logo-text { font-weight: 700; font-size: 18px; color: var(--blue); transition: opacity .18s, width .18s; white-space: nowrap; }
@@ -73,6 +75,9 @@ html, body {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   border-radius: var(--radius-sm); color: var(--text-2); cursor: pointer;
   white-space: nowrap; text-decoration: none; user-select: none;
+  -webkit-user-drag: none;
+  border: none; background: none; width: 100%; text-align: left;
+  font-family: inherit; font-size: inherit;
   transition: background .15s, color .15s, transform 80ms;
 }
 .nav-item:hover { background: rgba(76,110,245,.07); color: var(--accent); }

@@ -13,7 +13,8 @@
     {
       "provider": "github",
       "owner": "kumaru06",
-      "repo": "gcashpos"
+      "repo": "gcashpos",
+      "releaseType": "release"
     }
   ],
   "win": {

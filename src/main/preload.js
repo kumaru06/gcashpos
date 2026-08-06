@@ -36,11 +36,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   settings: {
     get: (key) => ipcRenderer.invoke('settings:get', key),
-    set: (key, value) => ipcRenderer.invoke('settings:set', key, value)
+    set: (key, value) => ipcRenderer.invoke('settings:set', key, value),
+    getApiEndpoint: () => ipcRenderer.invoke('settings:getApiEndpoint'),
+    testConnection: () => ipcRenderer.invoke('settings:testConnection')
+  },
+  updater: {
+    check: (manual) => ipcRenderer.invoke('updater:check', !!manual),
+    download: () => ipcRenderer.invoke('updater:download'),
+    install: () => ipcRenderer.invoke('updater:install'),
+    getVersion: () => ipcRenderer.invoke('updater:getVersion')
   },
   toast: (message, level = 'info') => ipcRenderer.send('ui:toast', { message, level }),
   on: (channel, cb) => {
-    const allowed = ['app:ready', 'sync:status', 'ui:toast', 'auth:session-revoked']
+    const allowed = ['app:ready', 'sync:status', 'ui:toast', 'auth:session-revoked', 'updater:status']
     if (!allowed.includes(channel)) return
     ipcRenderer.on(channel, (e, ...args) => cb(...args))
   }

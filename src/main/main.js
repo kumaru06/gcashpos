@@ -4,6 +4,7 @@ const { registerIpcHandlers } = require('./ipcHandlers')
 const { initDatabase } = require('./database')
 const authService = require('./authService')
 const presenceService = require('./presenceService')
+const updateService = require('./updateService')
 
 // One POS window per machine — avoid concurrent UI races on shared SQLite.
 const gotLock = app.requestSingleInstanceLock()
@@ -81,6 +82,10 @@ app.whenReady().then(async () => {
   } catch (e) {}
   createWindow()
 
+  updateService.initAutoUpdater({
+    onBeforeInstall: function () { isQuitting = true }
+  })
+
   // Live-reload in development: watch renderer files and reload window on change
   if (!app.isPackaged) {
     try {
@@ -134,6 +139,7 @@ app.on('before-quit', (event) => {
     })
     .finally(() => {
       try { require('./syncService').stopAutoSync() } catch (e) {}
+      try { updateService.stopAutoUpdateChecks() } catch (e) {}
       app.exit(0)
     })
 })

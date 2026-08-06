@@ -5,6 +5,7 @@ const db = require('./database')
 const syncService = require('./syncService')
 const presenceService = require('./presenceService')
 const emailService = require('./emailService')
+const api = require('./apiClient')
 
 function esc (value) {
   return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -54,7 +55,8 @@ function registerIpcHandlers () {
     'staff:list', 'staff:create', 'staff:update', 'staff:delete',
     'sync:status', 'sync:force', 'connectivity:check',
     'email:send-report', 'pdf:save-transaction',
-    'settings:get', 'settings:set'
+    'settings:get', 'settings:set',
+    'updater:check', 'updater:download', 'updater:install', 'updater:getVersion'
   ]
   handlerNames.forEach((name) => {
     try { ipcMain.removeHandler(name) } catch (e) {}
@@ -233,16 +235,32 @@ function registerIpcHandlers () {
   })
 
   // Local app settings (API URL etc.) — separate from renderer localStorage UI prefs.
+  const { setApiEndpoint, resolveApiEndpoint } = require('../config/constants')
   const settingsStore = new (require('electron-store'))({ name: 'gcashpos-settings' })
   ipcMain.handle('settings:get', async (event, key) => {
     if (!key) return settingsStore.store
     return settingsStore.get(key)
   })
+  ipcMain.handle('settings:getApiEndpoint', async () => resolveApiEndpoint())
+  ipcMain.handle('settings:testConnection', async () => {
+    const online = await api.isApiOnline()
+    return { online, endpoint: resolveApiEndpoint() }
+  })
   ipcMain.handle('settings:set', async (event, key, value) => {
     if (!key) return { success: false, error: 'Missing settings key' }
+    if (key === 'apiEndpoint') {
+      const normalized = setApiEndpoint(String(value || '').trim())
+      return { success: true, apiEndpoint: normalized }
+    }
     settingsStore.set(key, value)
     return { success: true }
   })
+
+  const updateService = require('./updateService')
+  ipcMain.handle('updater:check', async (event, manual) => updateService.checkForUpdates(!!manual))
+  ipcMain.handle('updater:download', async () => updateService.downloadUpdate())
+  ipcMain.handle('updater:install', async () => updateService.installUpdate())
+  ipcMain.handle('updater:getVersion', async () => updateService.getCurrentVersion())
 
   ipcMain.on('ui:toast', (event, payload) => {
     BrowserWindow.getAllWindows().forEach((win) => {

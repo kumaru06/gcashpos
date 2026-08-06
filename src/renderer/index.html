@@ -601,6 +601,13 @@
             <div class="settings-switch"><div><strong>Auto Refresh</strong><span>Refresh dashboard data periodically.</span></div><label class="switch"><input type="checkbox" id="setAutoRefresh"><span></span></label></div>
           </div>
           <div class="settings-card">
+            <h3>Cloud Server</h3>
+            <p class="settings-note">I-set ang URL ng Gcashweb server para sa sync at login. Hal: <strong>https://adminpos.online/api</strong> o <strong>http://192.168.1.100/api</strong> (local network).</p>
+            <div class="frow"><div class="fg" style="grid-column:1/-1"><label>Server API URL</label><input id="setApiEndpoint" placeholder="https://adminpos.online/api"/></div></div>
+            <div class="tbl-acts"><button class="btn btn-outline" id="settingsTestApiBtn" type="button">Test Connection</button></div>
+            <div class="settings-status" id="cloudServerStatus">Checking server…</div>
+          </div>
+          <div class="settings-card">
             <h3>Maintenance</h3>
             <p class="settings-note">Use these tools for local app maintenance.</p>
             <div class="tbl-acts"><button class="btn btn-outline" id="settingsRefreshBtn">Refresh Data</button><button class="btn btn-outline" id="settingsResetBtn">Reset Settings</button><button class="btn btn-outline" id="settingsSyncBtn">Force Sync</button></div>
@@ -619,11 +626,12 @@
         <div class="page-hdr"><div><h1 class="page-title">About</h1><p class="page-sub">Application information and quick help.</p></div></div>
         <div class="about-hero">
           <img src="./assets/logo/gcashlogo.png" alt="GCash"/>
-          <div><h2>GCash POS</h2><p>Hybrid Offline + Online Transaction Record System</p><span id="aboutVersion">Version 0.1.0</span></div>
+          <div><h2>GCash POS</h2><p>Hybrid Offline + Online Transaction Record System</p></div>
         </div>
         <div class="about-grid">
           <div class="settings-card"><h3>Features</h3><ul class="about-list"><li>Daily and monthly sales tracking</li><li>Cash in, cash out, and service fee summaries</li><li>Customer transaction history</li><li>CSV report export and print-ready reports</li><li>Offline-first local database</li></ul></div>
           <div class="settings-card"><h3>System Status</h3><div class="about-kv"><span>Sync</span><strong id="aboutSyncStatus">Checking…</strong></div><div class="about-kv"><span>Total Transactions</span><strong id="aboutTxnCount">0</strong></div><div class="about-kv"><span>Current Date</span><strong id="aboutDate">—</strong></div></div>
+          <div class="settings-card"><h3>Updates</h3><p class="settings-note">GCash POS checks GitHub Releases for new versions automatically.</p><div class="about-kv"><span>Current version</span><strong id="aboutVersion">Version 0.1.0</strong></div><div class="tbl-acts"><button class="btn btn-outline" id="aboutCheckUpdateBtn" type="button">Check for updates</button></div></div>
           <div class="settings-card"><h3>Support</h3><p class="settings-note">For issues, verify your database records, sync connection, and report filters first.</p><div class="tbl-acts"><button class="btn btn-outline" id="aboutOpenReports">Open Reports</button><button class="btn btn-outline" id="aboutOpenSettings">Open Settings</button></div></div>
         </div>
       </section>
@@ -785,6 +793,7 @@
 <!-- Chart.js from local node_modules -->
 <script src="../../node_modules/chart.js/dist/chart.umd.min.js"></script>
 <script src="./js/app.js"></script>
+<script src="./js/updates.js"></script>
 <script src="./js/dashboard.js"></script>
 </body>
 </html>

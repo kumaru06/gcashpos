@@ -744,3 +744,18 @@ body.lp::before {
 }
 .ms-month-btn:hover { border-color: #4C6EF5; color: #4C6EF5; }
 .ms-month-btn.active { background: #4C6EF5; color: #fff; border-color: #4C6EF5; box-shadow: 0 3px 10px rgba(76,110,245,.3); }
+
+/* ── APP UPDATE MODAL ── */
+.update-modal { max-width: 460px; }
+.update-message { margin: 0; color: var(--text-2); line-height: 1.55; font-size: 14px; }
+.update-progress-wrap { margin-top: 16px; }
+.update-progress-bar {
+  height: 10px; border-radius: 999px; background: var(--border); overflow: hidden;
+}
+.update-progress-fill {
+  height: 100%; width: 0; border-radius: inherit;
+  background: linear-gradient(90deg, #4C6EF5, #1E88E5);
+  transition: width .2s ease;
+}
+.update-progress-label { margin: 8px 0 0; font-size: 12px; color: var(--text-2); font-weight: 600; }
+.update-actions { gap: 10px; }

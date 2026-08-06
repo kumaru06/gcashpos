@@ -2240,6 +2240,69 @@
       var a=$('setAutoRefresh'); if(a) a.checked = !!s.autoRefresh
       setAvatarVisual($('profilePhotoPreview'), display)
       setText('settingsStatus', admin ? 'Settings loaded' : 'Settings loaded — staff profile is managed by administrator')
+      loadCloudServerSettings()
+    }
+
+    async function loadCloudServerSettings(){
+      var el = $('setApiEndpoint')
+      var statusEl = $('cloudServerStatus')
+      if(!window.electronAPI || !window.electronAPI.settings) {
+        if(statusEl) statusEl.textContent = 'Cloud settings unavailable'
+        return
+      }
+      try {
+        var ep = await window.electronAPI.settings.getApiEndpoint()
+        if(el) el.value = ep || ''
+        if(statusEl) statusEl.textContent = 'Current server: ' + (ep || '—')
+      } catch (e) {
+        if(statusEl) statusEl.textContent = 'Could not load server URL'
+      }
+    }
+
+    async function saveCloudServerSettings(showToast){
+      var el = $('setApiEndpoint')
+      var statusEl = $('cloudServerStatus')
+      if(!el || !window.electronAPI || !window.electronAPI.settings) return null
+      var url = el.value.trim()
+      if(!url) {
+        if(showToast) toast('Enter a server API URL first','error')
+        return null
+      }
+      try {
+        var res = await window.electronAPI.settings.set('apiEndpoint', url)
+        if(res && res.apiEndpoint) el.value = res.apiEndpoint
+        if(statusEl) statusEl.textContent = 'Saved: ' + (res && res.apiEndpoint ? res.apiEndpoint : url)
+        if(showToast) toast('Server URL saved','success')
+        return res
+      } catch (e) {
+        if(statusEl) statusEl.textContent = 'Failed to save server URL'
+        if(showToast) toast('Failed to save server URL','error')
+        return null
+      }
+    }
+
+    async function testCloudServerConnection(){
+      var statusEl = $('cloudServerStatus')
+      if(statusEl) statusEl.textContent = 'Testing connection…'
+      await saveCloudServerSettings(false)
+      if(!window.electronAPI || !window.electronAPI.settings) {
+        if(statusEl) statusEl.textContent = 'Cloud settings unavailable'
+        return
+      }
+      try {
+        var result = await window.electronAPI.settings.testConnection()
+        if(result && result.online){
+          if(statusEl) statusEl.textContent = 'Connected ✓ — ' + (result.endpoint || '')
+          toast('Server connected successfully','success')
+        } else {
+          if(statusEl) statusEl.textContent = 'Cannot reach server — ' + (result && result.endpoint ? result.endpoint : 'check URL')
+          toast('Cannot reach server. Check URL and make sure Gcashweb is running.','error')
+        }
+        await updateSync(true)
+      } catch (e) {
+        if(statusEl) statusEl.textContent = 'Connection test failed'
+        toast('Connection test failed','error')
+      }
     }
 
     function collectSettings(){
@@ -2263,6 +2326,7 @@
       var s = collectSettings()
       saveSettingsObj(s)
       applySettings()
+      saveCloudServerSettings(false)
       setText('settingsStatus', 'Saved on ' + new Date().toLocaleTimeString('en-PH'))
       if(showToast !== false) toast('Settings saved','success')
     }
@@ -2390,6 +2454,7 @@
       window.addEventListener('beforeunload', function(){ saveSettings(false) })
       var refresh=$('settingsRefreshBtn'); if(refresh) refresh.addEventListener('click', function(){ loadTransactions(); loadSummary(); setText('settingsStatus','Data refreshed'); toast('Data refreshed','success') })
       var reset=$('settingsResetBtn'); if(reset) reset.addEventListener('click', function(){ showConfirm('Reset Settings?', 'This restores default local settings only.', function(){ localStorage.removeItem(settingsStorageKey()); renderSettingsPage(); applySettings(); toast('Settings reset','success') }, 'Reset', 'btn-danger') })
+      var testApi=$('settingsTestApiBtn'); if(testApi) testApi.addEventListener('click', function(){ testCloudServerConnection() })
       var sync=$('settingsSyncBtn'); if(sync) sync.addEventListener('click', async function(){
         setText('settingsStatus','Syncing...')
         try{
@@ -2431,6 +2496,7 @@
       var cropOverlay=$('cropOverlay'); if(cropOverlay) cropOverlay.addEventListener('click', function(e){ if(e.target===cropOverlay) closeOverlay('cropOverlay') })
       var ar=$('aboutOpenReports'); if(ar) ar.addEventListener('click', function(){ if(window.showPage) window.showPage('reports') })
       var as=$('aboutOpenSettings'); if(as) as.addEventListener('click', function(){ if(window.showPage) window.showPage('settings') })
+      var uc=$('aboutCheckUpdateBtn'); if(uc) uc.addEventListener('click', function(){ if(window.checkAppUpdates) window.checkAppUpdates(true) })
       // Ensure menus remain wired even after partial init failures.
       try { wireTopbarMenus() } catch (e) {}
       try {

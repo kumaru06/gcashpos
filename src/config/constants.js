@@ -1,4 +1,4 @@
-const DEFAULT_API_ENDPOINT = 'http://gcashweb.test/api'
+const DEFAULT_API_ENDPOINT = 'https://adminpos.online/api'
 
 function normalizeApiEndpoint (value) {
   const raw = String(value || '').trim().replace(/\/+$/, '')

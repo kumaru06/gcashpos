@@ -4,13 +4,18 @@
   "version": "0.1.0",
   "description": "Hybrid Offline+Online GCash-style POS Transaction Record System built with Electron",
   "main": "src/main/main.js",
-  "author": "Your Name",
+  "author": "kumaru06",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kumaru06/gcashpos.git"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
     "pack": "electron-builder --dir",
     "build": "electron-builder --win --x64",
+    "build:publish": "electron-builder --win --x64 --publish always",
     "dist": "electron-builder"
   },
   "dependencies": {
@@ -20,6 +25,7 @@
     "chart.js": "^4.4.0",
     "dayjs": "^1.11.9",
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.8.9",
     "nodemailer": "^8.0.7"
   },
   "devDependencies": {
@@ -32,7 +38,7 @@
   },
   "build": {
     "extends": null,
-    "appId": "com.yourcompany.gcash-pos",
+    "appId": "com.gcashpos.desktop",
     "productName": "GCash POS",
     "directories": {
       "buildResources": "build",
@@ -42,11 +48,24 @@
       "src/**/*",
       "package.json"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "kumaru06",
+        "repo": "gcashpos"
+      }
+    ],
     "win": {
       "target": [
         "nsis"
       ],
       "icon": "build/icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }

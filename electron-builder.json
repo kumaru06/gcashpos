@@ -1,5 +1,5 @@
 {
-  "appId": "com.yourcompany.gcash-pos",
+  "appId": "com.gcashpos.desktop",
   "productName": "GCash POS",
   "directories": {
     "buildResources": "build",
@@ -8,6 +8,13 @@
   "files": [
     "src/**/*",
     "package.json"
+  ],
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "kumaru06",
+      "repo": "gcashpos"
+    }
   ],
   "win": {
     "target": ["nsis"],
@@ -18,17 +25,5 @@
     "perMachine": false,
     "allowElevation": true,
     "allowToChangeInstallationDirectory": true
-  }
-}
-{
-  "appId": "com.example.gcashpos",
-  "productName": "GCash POS",
-  "nsis": {
-    "oneClick": false,
-    "perMachine": false,
-    "allowToChangeInstallationDirectory": true
-  },
-  "directories": {
-    "output": "dist"
   }
 }

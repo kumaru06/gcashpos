@@ -14,8 +14,8 @@
     "start": "electron .",
     "dev": "electron .",
     "pack": "electron-builder --dir",
-    "build": "electron-builder --win --x64",
-    "build:publish": "electron-builder --win --x64 --publish always",
+    "build": "node scripts/generate-icon.js && electron-builder --win --x64",
+    "build:publish": "node scripts/generate-icon.js && electron-builder --win --x64 --publish always",
     "dist": "electron-builder"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "electron": "^25.0.0",
     "electron-builder": "^24.7.0",
     "electron-rebuild": "^3.2.9",
+    "png-to-ico": "^3.0.2",
     "postcss": "^8.4.0",
     "tailwindcss": "^4.0.0"
   },

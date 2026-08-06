@@ -1,8 +1,8 @@
 {
-  "name": "gcash-pos",
-  "productName": "GCash POS",
+  "name": "cashpos",
+  "productName": "CashPOS",
   "version": "0.1.0",
-  "description": "Hybrid Offline+Online GCash-style POS Transaction Record System built with Electron",
+  "description": "Hybrid offline + online POS transaction record system built with Electron",
   "main": "src/main/main.js",
   "author": "kumaru06",
   "license": "MIT",
@@ -38,8 +38,8 @@
   },
   "build": {
     "extends": null,
-    "appId": "com.gcashpos.desktop",
-    "productName": "GCash POS",
+    "appId": "com.cashpos.desktop",
+    "productName": "CashPOS",
     "directories": {
       "buildResources": "build",
       "output": "dist"

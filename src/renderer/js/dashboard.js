@@ -989,7 +989,7 @@
     var noApi = detail && detail.api === false
     var noInternet = !detail || detail.internet === false
     if (noApi) {
-      toast('You are Offline — GCash web server unreachable', 'error')
+      toast('You are Offline — cloud server unreachable', 'error')
     } else if (noInternet) {
       toast('You are Offline — no internet connection', 'error')
     } else {
@@ -1031,8 +1031,8 @@
         }
       } else {
         badge.title = online
-          ? 'Connected to GCash web server'
-          : 'Offline — GCash web server unreachable'
+          ? 'Connected to cloud server'
+          : 'Offline — cloud server unreachable'
         if (online) _cloudSyncWarned = false
       }
       if (_lastOnlineState === null) {
@@ -1878,7 +1878,7 @@
       var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'})
       var a = document.createElement('a')
       a.href = URL.createObjectURL(blob)
-      a.download = 'gcash-pos-report-' + localDate(new Date()) + '.csv'
+      a.download = 'cashpos-report-' + localDate(new Date()) + '.csv'
       document.body.appendChild(a); a.click(); a.remove()
       URL.revokeObjectURL(a.href)
       toast('Report exported','success')
@@ -2108,7 +2108,7 @@
 
     // ── SETTINGS / PROFILE / NOTIFICATIONS / ABOUT ──
     var defaultSettings = {
-      businessName:'GCash POS', branch:'Main Branch', receiptFooter:'Thank you for your transaction', defaultFee:'0',
+      businessName:'CashPOS', branch:'Main Branch', receiptFooter:'Thank you for your transaction', defaultFee:'0',
       profileName:'POS User', profileRole:'POS Administrator', profileEmail:'', profileInitials:'PU',
       profilePhoto:'', profilePhotos:{}, reportEmail:'', smtpHost:'smtp.gmail.com', smtpPort:'587', smtpUser:'', smtpFrom:'', smtpPass:'', smtpSecure:'false', compact:false, notifDot:true, autoRefresh:false, syncOverride:null
     }
@@ -2118,7 +2118,7 @@
       var base = defaultSettings || {}
       try { s = Object.assign({}, base, JSON.parse(localStorage.getItem(settingsStorageKey())||'{}')) }
       catch(e){ s = Object.assign({}, base) }
-      if(!s.reportEmail || s.reportEmail === 'admin@gcashpos.local') s.reportEmail = s.profileEmail || base.profileEmail || ''
+      if(!s.reportEmail || s.reportEmail === 'admin@cashpos.local') s.reportEmail = s.profileEmail || base.profileEmail || ''
       return s
     }
 
@@ -2164,7 +2164,7 @@
         emailEl.type = 'email'
         emailEl.title = ''
         emailEl.placeholder = 'receiver@email.com'
-        if(!emailEl.value || emailEl.value === '············' || emailEl.value === 'admin@gcashpos.local') emailEl.value = s.reportEmail || s.profileEmail || ''
+        if(!emailEl.value || emailEl.value === '············' || emailEl.value === 'admin@cashpos.local') emailEl.value = s.reportEmail || s.profileEmail || ''
       } else {
         emailEl.type = 'text'
         emailEl.value = '············'
@@ -2314,7 +2314,7 @@
       }
       var sec=$('setSmtpSecure'); if(sec) s.smtpSecure = sec.value
       if(admin && $('reportEmail')) s.reportEmail = $('reportEmail').value.trim() || s.profileEmail
-      if(!s.reportEmail || s.reportEmail === 'admin@gcashpos.local') s.reportEmail = s.profileEmail
+      if(!s.reportEmail || s.reportEmail === 'admin@cashpos.local') s.reportEmail = s.profileEmail
       if(!s.profileInitials) s.profileInitials = initialsFromName(s.profileName)
       s.compact = !!($('setCompact') && $('setCompact').checked)
       s.notifDot = !!($('setNotifDot') && $('setNotifDot').checked)
@@ -2488,7 +2488,7 @@
       var photoBtn=$('profilePhotoBtn'); if(photoBtn) photoBtn.addEventListener('click', function(){ var inp=$('profilePhotoInput'); if(inp) inp.click() })
       var photoInput=$('profilePhotoInput'); if(photoInput) photoInput.addEventListener('change', function(){ openCropFromFile(photoInput.files && photoInput.files[0]); photoInput.value='' })
       var photoRemove=$('profilePhotoRemoveBtn'); if(photoRemove) photoRemove.addEventListener('click', function(){ var s=getSettings(); var user=getCurrentUser(); if(!s.profilePhotos) s.profilePhotos={}; if(user.username) delete s.profilePhotos[user.username]; s.profilePhoto=''; saveSettingsObj(s); applySettings(); renderSettingsPage(); toast('Profile photo removed','success') })
-      var profileEmailInput=$('setProfileEmail'); if(profileEmailInput) profileEmailInput.addEventListener('input', function(){ var re=$('reportEmail'); if(re && (!re.value || re.value === 'admin@gcashpos.local')) re.value = profileEmailInput.value.trim(); autoSaveSettings() })
+      var profileEmailInput=$('setProfileEmail'); if(profileEmailInput) profileEmailInput.addEventListener('input', function(){ var re=$('reportEmail'); if(re && (!re.value || re.value === 'admin@cashpos.local')) re.value = profileEmailInput.value.trim(); autoSaveSettings() })
       ;['cropZoom','cropX','cropY'].forEach(function(id){ var el=$(id); if(el) el.addEventListener('input', drawCrop) })
       var cropApply=$('cropApply'); if(cropApply) cropApply.addEventListener('click', applyCroppedPhoto)
       var cropCancel=$('cropCancel'); if(cropCancel) cropCancel.addEventListener('click', function(){ closeOverlay('cropOverlay') })

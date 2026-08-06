@@ -12,7 +12,7 @@
       + '      <button type="button" class="modal-x" id="updateClose" aria-label="Close">&times;</button>'
       + '    </div>'
       + '    <div class="modal-body">'
-      + '      <p id="updateMessage" class="update-message">A new version of GCash POS is ready.</p>'
+      + '      <p id="updateMessage" class="update-message">A new version of CashPOS is ready.</p>'
       + '      <div class="update-progress-wrap" id="updateProgressWrap" hidden>'
       + '        <div class="update-progress-bar"><div class="update-progress-fill" id="updateProgressFill"></div></div>'
       + '        <p class="update-progress-label" id="updateProgressLabel">Downloading… 0%</p>'
@@ -89,7 +89,7 @@
     if (payload.state === 'available') {
       ensureModal()
       $('updateTitle').textContent = 'Update Available'
-      $('updateMessage').textContent = 'GCash POS v' + payload.version + ' is available. You are on v'
+      $('updateMessage').textContent = 'CashPOS v' + payload.version + ' is available. You are on v'
         + (payload.currentVersion || '?') + '.'
       if ($('updateProgressWrap')) $('updateProgressWrap').hidden = true
       if ($('updateLaterBtn')) $('updateLaterBtn').style.display = ''

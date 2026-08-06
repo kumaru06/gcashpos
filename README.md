@@ -1,6 +1,6 @@
-# GCash POS (Electron)
+# CashPOS (Electron)
 
-Hybrid offline-first POS desktop app scaffold.
+Hybrid offline-first POS desktop app.
 
 Quick start
 
@@ -19,10 +19,10 @@ npm run dev
 3. Build installer (Windows):
 
 ```powershell
-npm run dist
+npm run build
 ```
 
 Notes
-- Database is stored in the Electron `userData` directory (gcashpos.db).
-- Replace `syncService` endpoint in `src/main/syncService.js` with real API.
-- This scaffold enables `contextIsolation` and exposes a minimal API through `preload.js`.
+- Database is stored in the Electron `userData` directory.
+- Default cloud API: `https://adminpos.online/api`
+- Auto-update: GitHub Releases (see `.github/workflows/release-desktop.yml`).

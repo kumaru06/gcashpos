@@ -9,4 +9,4 @@ const run = Number(process.env.GITHUB_RUN_NUMBER || 0)
 pkg.version = run > 0 ? `0.1.${run}` : pkg.version
 
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
-console.log(`GCash POS CI version: ${pkg.version}`)
+console.log(`CashPOS CI version: ${pkg.version}`)

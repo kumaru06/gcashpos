@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>GCash POS – Dashboard</title>
+  <title>CashPOS – Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -17,7 +17,7 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img src="./assets/logo/gcashlogo.png" class="logo-img" alt="GCash"/>
+      <img src="./assets/logo/gcashlogo.png" class="logo-img" alt="CashPOS"/>
     </div>
     <nav class="sidebar-nav" id="sidebarNav">
       <a class="nav-item active" data-page="dashboard">
@@ -96,7 +96,7 @@
             </div>
           </div>
           <button class="drop-action" id="profileSettingsBtn">Profile & Settings</button>
-          <button class="drop-action" id="profileAboutBtn">About GCash POS</button>
+          <button class="drop-action" id="profileAboutBtn">About CashPOS</button>
           <button class="drop-action danger" id="profileLogoutBtn">Logout</button>
         </div>
       </div>
@@ -577,7 +577,7 @@
         <div class="settings-grid">
           <div class="settings-card">
             <h3>Business Information</h3>
-            <div class="frow"><div class="fg"><label>Business Name</label><input id="setBusinessName" placeholder="GCash POS"/></div><div class="fg"><label>Branch / Location</label><input id="setBranch" placeholder="Main Branch"/></div></div>
+            <div class="frow"><div class="fg"><label>Business Name</label><input id="setBusinessName" placeholder="CashPOS"/></div><div class="fg"><label>Branch / Location</label><input id="setBranch" placeholder="Main Branch"/></div></div>
             <div class="frow"><div class="fg"><label>Receipt Footer</label><input id="setReceiptFooter" placeholder="Thank you for your transaction"/></div><div class="fg"><label>Default Service Fee</label><input id="setDefaultFee" type="number" min="0" step="0.01" placeholder="0.00"/></div></div>
           </div>
           <div class="settings-card">
@@ -592,7 +592,7 @@
               </div>
             </div>
             <div class="frow"><div class="fg"><label>Full Name</label><input id="setProfileName" placeholder="Your full name"/></div><div class="fg"><label>Role</label><input id="setProfileRole" placeholder="POS Administrator"/></div></div>
-            <div class="frow"><div class="fg"><label>Email</label><input id="setProfileEmail" type="email" placeholder="admin@gcashpos.local"/></div><div class="fg"><label>Initials</label><input id="setProfileInitials" maxlength="3" placeholder="DR"/></div></div>
+            <div class="frow"><div class="fg"><label>Email</label><input id="setProfileEmail" type="email" placeholder="admin@cashpos.local"/></div><div class="fg"><label>Initials</label><input id="setProfileInitials" maxlength="3" placeholder="DR"/></div></div>
           </div>
           <div class="settings-card">
             <h3>Preferences</h3>
@@ -625,13 +625,13 @@
       <section class="page" id="page-about">
         <div class="page-hdr"><div><h1 class="page-title">About</h1><p class="page-sub">Application information and quick help.</p></div></div>
         <div class="about-hero">
-          <img src="./assets/logo/gcashlogo.png" alt="GCash"/>
-          <div><h2>GCash POS</h2><p>Hybrid Offline + Online Transaction Record System</p></div>
+          <img src="./assets/logo/gcashlogo.png" alt="CashPOS"/>
+          <div><h2>CashPOS</h2><p>Hybrid Offline + Online Transaction Record System</p></div>
         </div>
         <div class="about-grid">
           <div class="settings-card"><h3>Features</h3><ul class="about-list"><li>Daily and monthly sales tracking</li><li>Cash in, cash out, and service fee summaries</li><li>Customer transaction history</li><li>CSV report export and print-ready reports</li><li>Offline-first local database</li></ul></div>
           <div class="settings-card"><h3>System Status</h3><div class="about-kv"><span>Sync</span><strong id="aboutSyncStatus">Checking…</strong></div><div class="about-kv"><span>Total Transactions</span><strong id="aboutTxnCount">0</strong></div><div class="about-kv"><span>Current Date</span><strong id="aboutDate">—</strong></div></div>
-          <div class="settings-card"><h3>Updates</h3><p class="settings-note">GCash POS checks GitHub Releases for new versions automatically.</p><div class="about-kv"><span>Current version</span><strong id="aboutVersion">Version 0.1.0</strong></div><div class="tbl-acts"><button class="btn btn-outline" id="aboutCheckUpdateBtn" type="button">Check for updates</button></div></div>
+          <div class="settings-card"><h3>Updates</h3><p class="settings-note">CashPOS checks GitHub Releases for new versions automatically.</p><div class="about-kv"><span>Current version</span><strong id="aboutVersion">Version 0.1.0</strong></div><div class="tbl-acts"><button class="btn btn-outline" id="aboutCheckUpdateBtn" type="button">Check for updates</button></div></div>
           <div class="settings-card"><h3>Support</h3><p class="settings-note">For issues, verify your database records, sync connection, and report filters first.</p><div class="tbl-acts"><button class="btn btn-outline" id="aboutOpenReports">Open Reports</button><button class="btn btn-outline" id="aboutOpenSettings">Open Settings</button></div></div>
         </div>
       </section>

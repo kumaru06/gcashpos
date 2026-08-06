@@ -17,7 +17,7 @@ function buildReportText (report = {}) {
   const range = report.range || {}
   const lines = []
 
-  lines.push('GCash POS Report')
+  lines.push('CashPOS Report')
   lines.push('')
   lines.push(`Date Range: ${range.from || '—'} to ${range.to || '—'}`)
   lines.push(`Total Records: ${rows.length}`)
@@ -35,7 +35,7 @@ function buildReportText (report = {}) {
   lines.push('')
   lines.push('A full CSV spreadsheet is also attached to this email.')
   lines.push('')
-  lines.push('Generated from GCash POS.')
+  lines.push('Generated from CashPOS.')
   return lines.join('\n')
 }
 
@@ -84,7 +84,7 @@ function buildReportHtml (report = {}) {
 
   return `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.45">
-      <h2 style="margin:0 0 4px;color:#1d4ed8">GCash POS Report</h2>
+      <h2 style="margin:0 0 4px;color:#1d4ed8">CashPOS Report</h2>
       <p style="margin:0 0 18px;color:#6b7280">${esc(range.from || '—')} to ${esc(range.to || '—')}</p>
       <table style="border-collapse:collapse;margin-bottom:18px;width:100%;max-width:680px">
         <tr>
@@ -123,7 +123,7 @@ function buildReportHtml (report = {}) {
         </tbody>
       </table>
       <p style="margin-top:12px;color:#6b7280">All ${rows.length} records are included here and in the attached CSV spreadsheet.</p>
-      <p style="margin-top:18px;color:#6b7280">Generated from GCash POS.</p>
+      <p style="margin-top:18px;color:#6b7280">Generated from CashPOS.</p>
     </div>
   `
 }
@@ -145,7 +145,7 @@ async function sendReportEmail ({ to, smtp, report }) {
   })
 
   const range = report && report.range ? report.range : {}
-  const subject = `GCash POS Report ${range.from || ''} to ${range.to || ''}`.trim()
+  const subject = `CashPOS Report ${range.from || ''} to ${range.to || ''}`.trim()
   const safeFrom = String(range.from || 'from').replace(/[^0-9A-Za-z_-]/g, '-')
   const safeTo = String(range.to || 'to').replace(/[^0-9A-Za-z_-]/g, '-')
 
@@ -157,7 +157,7 @@ async function sendReportEmail ({ to, smtp, report }) {
     html: buildReportHtml(report),
     attachments: [
       {
-        filename: `gcash-pos-report-${safeFrom}-to-${safeTo}.csv`,
+        filename: `cashpos-report-${safeFrom}-to-${safeTo}.csv`,
         content: buildReportCsv(report),
         contentType: 'text/csv; charset=utf-8'
       }

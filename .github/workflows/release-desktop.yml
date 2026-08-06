@@ -1,4 +1,4 @@
-name: Release GCash POS Desktop
+name: Release CashPOS Desktop
 
 on:
   push:

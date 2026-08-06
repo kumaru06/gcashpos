@@ -592,7 +592,7 @@ async function syncStaffCreateToCloud (payload = {}) {
   if (!token) return { ok: false, error: 'No cloud session. Login as admin online to sync staff.' }
   try {
     const online = await api.isApiOnline()
-    if (!online) return { ok: false, error: 'GCash web server unreachable. Staff saved locally only.' }
+    if (!online) return { ok: false, error: 'Cloud server unreachable. Staff saved locally only.' }
     const res = await api.staffCreate(token, {
       username: payload.username,
       password: payload.password,
@@ -616,7 +616,7 @@ async function syncStaffUpdateToCloud (cloudStaffId, payload = {}) {
   if (!cloudStaffId) return { ok: false, error: 'Staff is not linked to cloud yet.' }
   try {
     const online = await api.isApiOnline()
-    if (!online) return { ok: false, error: 'GCash web server unreachable. Local update only.' }
+    if (!online) return { ok: false, error: 'Cloud server unreachable. Local update only.' }
     const body = {
       username: payload.username,
       full_name: payload.full_name || '',
@@ -641,7 +641,7 @@ async function syncStaffDeleteToCloud (cloudStaffId) {
   if (!cloudStaffId) return { ok: true, skipped: true }
   try {
     const online = await api.isApiOnline()
-    if (!online) return { ok: false, error: 'GCash web server unreachable. Deleted locally only.' }
+    if (!online) return { ok: false, error: 'Cloud server unreachable. Deleted locally only.' }
     await api.staffDelete(token, cloudStaffId)
     return { ok: true }
   } catch (err) {

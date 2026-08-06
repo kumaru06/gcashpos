@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             settings.profilePhoto = ''
             if (!settings.profilePhotos) settings.profilePhotos = {}
             if (loggedIn.username && loggedIn.username !== 'admin') {
-              if (settings.profileEmail === 'admin@gcashpos.local') settings.profileEmail = ''
+              if (settings.profileEmail === 'admin@cashpos.local') settings.profileEmail = ''
             }
             localStorage.setItem(settingsKey, JSON.stringify(settings))
           } catch (e) {}

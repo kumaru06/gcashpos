@@ -1,6 +1,6 @@
 {
-  "appId": "com.gcashpos.desktop",
-  "productName": "GCash POS",
+  "appId": "com.cashpos.desktop",
+  "productName": "CashPOS",
   "directories": {
     "buildResources": "build",
     "output": "dist"

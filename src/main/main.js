@@ -5,6 +5,7 @@ const { initDatabase } = require('./database')
 const authService = require('./authService')
 const presenceService = require('./presenceService')
 const updateService = require('./updateService')
+const { migrateLegacyUserData } = require('./migrateLegacyUserData')
 
 // One POS window per machine — avoid concurrent UI races on shared SQLite.
 const gotLock = app.requestSingleInstanceLock()
@@ -67,6 +68,7 @@ function createWindow () {
 
 if (gotLock) {
 app.whenReady().then(async () => {
+  migrateLegacyUserData()
   try {
     await initDatabase()
     await authService.initAuth()

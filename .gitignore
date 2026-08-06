@@ -3,6 +3,7 @@ dist/
 build/*
 !build/icons/
 !build/icons/**
+!build/installer.nsh
 out/
 *.db
 *.sqlite

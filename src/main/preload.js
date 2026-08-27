@@ -44,7 +44,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     check: (manual) => ipcRenderer.invoke('updater:check', !!manual),
     download: () => ipcRenderer.invoke('updater:download'),
     install: () => ipcRenderer.invoke('updater:install'),
-    getVersion: () => ipcRenderer.invoke('updater:getVersion')
+    getVersion: () => ipcRenderer.invoke('updater:getVersion'),
+    isEnabled: () => ipcRenderer.invoke('updater:isEnabled')
   },
   toast: (message, level = 'info') => ipcRenderer.send('ui:toast', { message, level }),
   on: (channel, cb) => {

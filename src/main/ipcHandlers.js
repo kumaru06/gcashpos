@@ -261,6 +261,7 @@ function registerIpcHandlers () {
   ipcMain.handle('updater:download', async () => updateService.downloadUpdate())
   ipcMain.handle('updater:install', async () => updateService.installUpdate())
   ipcMain.handle('updater:getVersion', async () => updateService.getCurrentVersion())
+  ipcMain.handle('updater:isEnabled', async () => updateService.isUpdaterEnabled())
 
   ipcMain.on('ui:toast', (event, payload) => {
     BrowserWindow.getAllWindows().forEach((win) => {

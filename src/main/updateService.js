@@ -87,6 +87,7 @@ async function checkForUpdates (manual) {
     return {
       ok: false,
       manual: !!manual,
+      devMode: true,
       message: 'Auto-update runs in the installed app only.'
     }
   }
@@ -143,5 +144,6 @@ module.exports = {
   downloadUpdate,
   installUpdate,
   stopAutoUpdateChecks,
-  getCurrentVersion: () => app.getVersion()
+  getCurrentVersion: () => app.getVersion(),
+  isUpdaterEnabled: () => app.isPackaged
 }

@@ -40,12 +40,13 @@
 
   // ── TOAST ──
   var ICONS = {
-    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
-    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
-    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><circle cx="12" cy="8" r="1.15" fill="currentColor" stroke="none"/></svg>',
+    update:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.35"/><polyline points="21 3 21 9 15 9"/><path d="M12 8v5l3 2"/></svg>'
   }
   function toast(msg, type){
-    type = (['success','error','info'].includes(type)) ? type : 'info'
+    type = (['success','error','info','update'].includes(type)) ? type : 'info'
     var wrap = $('toastWrap'); if(!wrap) return
     var t = document.createElement('div')
     t.className = 'toast ' + type
@@ -189,66 +190,6 @@
       var todayLbl = $('todayDateLbl')
       if(todayLbl) todayLbl.textContent = new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
     }catch(e){ console.warn('summary', e) }
-  }
-
-  // ── SAMPLE DATA ──
-  function sampleRows(){
-    var now = new Date()
-    var yr = now.getFullYear()
-    function iso(y,m,d){ return new Date(y,m-1,d,10,0,0).toISOString() }
-    return [
-      // Apr 8 – 21 daily spread
-      {id:101,transaction_id:'TXN-S101',created_at:iso(yr,4,8),  customer_name:'Maria Santos',   type:'cash_in', amount:3200,  status:'success',sync_status:'synced'},
-      {id:102,transaction_id:'TXN-S102',created_at:iso(yr,4,8),  customer_name:'Pedro Reyes',    type:'cash_out',amount:1500,  status:'success',sync_status:'synced'},
-      {id:103,transaction_id:'TXN-S103',created_at:iso(yr,4,9),  customer_name:'Ana Garcia',     type:'cash_in', amount:7800,  status:'success',sync_status:'synced'},
-      {id:104,transaction_id:'TXN-S104',created_at:iso(yr,4,9),  customer_name:'Luis Torres',    type:'cash_out',amount:3400,  status:'success',sync_status:'synced'},
-      {id:105,transaction_id:'TXN-S105',created_at:iso(yr,4,10), customer_name:'Albert Goopio',  type:'cash_in', amount:12000, status:'success',sync_status:'synced'},
-      {id:106,transaction_id:'TXN-S106',created_at:iso(yr,4,10), customer_name:'Aiza Villadores',type:'cash_out',amount:5600,  status:'success',sync_status:'synced'},
-      {id:107,transaction_id:'TXN-S107',created_at:iso(yr,4,11), customer_name:'Juan dela Cruz', type:'cash_in', amount:9500,  status:'success',sync_status:'synced'},
-      {id:108,transaction_id:'TXN-S108',created_at:iso(yr,4,11), customer_name:'Maria Santos',   type:'cash_out',amount:4200,  status:'success',sync_status:'synced'},
-      {id:109,transaction_id:'TXN-S109',created_at:iso(yr,4,12), customer_name:'Pedro Reyes',    type:'cash_in', amount:15000, status:'success',sync_status:'synced'},
-      {id:110,transaction_id:'TXN-S110',created_at:iso(yr,4,12), customer_name:'Ana Garcia',     type:'cash_out',amount:6800,  status:'success',sync_status:'synced'},
-      {id:111,transaction_id:'TXN-S111',created_at:iso(yr,4,13), customer_name:'Luis Torres',    type:'cash_in', amount:5500,  status:'success',sync_status:'synced'},
-      {id:112,transaction_id:'TXN-S112',created_at:iso(yr,4,13), customer_name:'Albert Goopio', type:'cash_out',amount:2200,  status:'success',sync_status:'synced'},
-      {id:113,transaction_id:'TXN-S113',created_at:iso(yr,4,14), customer_name:'Aiza Villadores',type:'cash_in', amount:21000, status:'success',sync_status:'synced'},
-      {id:114,transaction_id:'TXN-S114',created_at:iso(yr,4,14), customer_name:'Juan dela Cruz', type:'cash_out',amount:9500,  status:'success',sync_status:'synced'},
-      {id:115,transaction_id:'TXN-S115',created_at:iso(yr,4,15), customer_name:'Maria Santos',   type:'cash_in', amount:8800,  status:'success',sync_status:'synced'},
-      {id:116,transaction_id:'TXN-S116',created_at:iso(yr,4,15), customer_name:'Pedro Reyes',    type:'cash_out',amount:4100,  status:'success',sync_status:'synced'},
-      {id:117,transaction_id:'TXN-S117',created_at:iso(yr,4,16), customer_name:'Ana Garcia',     type:'cash_in', amount:6200,  status:'success',sync_status:'synced'},
-      {id:118,transaction_id:'TXN-S118',created_at:iso(yr,4,17), customer_name:'Luis Torres',    type:'cash_in', amount:18500, status:'success',sync_status:'synced'},
-      {id:119,transaction_id:'TXN-S119',created_at:iso(yr,4,17), customer_name:'Albert Goopio', type:'cash_out',amount:7700,  status:'success',sync_status:'synced'},
-      {id:120,transaction_id:'TXN-S120',created_at:iso(yr,4,18), customer_name:'Aiza Villadores',type:'cash_in', amount:11000, status:'success',sync_status:'synced'},
-      {id:121,transaction_id:'TXN-S121',created_at:iso(yr,4,18), customer_name:'Juan dela Cruz', type:'cash_out',amount:5300,  status:'success',sync_status:'synced'},
-      {id:122,transaction_id:'TXN-S122',created_at:iso(yr,4,19), customer_name:'Maria Santos',   type:'cash_in', amount:25000, status:'success',sync_status:'synced'},
-      {id:123,transaction_id:'TXN-S123',created_at:iso(yr,4,19), customer_name:'Pedro Reyes',    type:'cash_out',amount:11000, status:'success',sync_status:'synced'},
-      {id:124,transaction_id:'TXN-S124',created_at:iso(yr,4,20), customer_name:'Ana Garcia',     type:'cash_in', amount:9900,  status:'success',sync_status:'synced'},
-      {id:125,transaction_id:'TXN-S125',created_at:iso(yr,4,20), customer_name:'Luis Torres',    type:'cash_out',amount:4500,  status:'success',sync_status:'synced'},
-      {id:126,transaction_id:'TXN-S126',created_at:iso(yr,4,21), customer_name:'Albert Goopio', type:'cash_in', amount:14000, status:'success',sync_status:'synced'},
-      {id:127,transaction_id:'TXN-S127',created_at:iso(yr,4,21), customer_name:'Aiza Villadores',type:'cash_out',amount:6200,  status:'success',sync_status:'synced'},
-      // Full year monthly spread (Jan–Dec)
-      {id:201,transaction_id:'TXN-M201',created_at:iso(yr,1,15),  customer_name:'Juan dela Cruz', type:'cash_in', amount:45000, status:'success',sync_status:'synced'},
-      {id:202,transaction_id:'TXN-M202',created_at:iso(yr,1,15),  customer_name:'Maria Santos',   type:'cash_out',amount:18000, status:'success',sync_status:'synced'},
-      {id:203,transaction_id:'TXN-M203',created_at:iso(yr,2,10),  customer_name:'Pedro Reyes',    type:'cash_in', amount:62000, status:'success',sync_status:'synced'},
-      {id:204,transaction_id:'TXN-M204',created_at:iso(yr,2,10),  customer_name:'Ana Garcia',     type:'cash_out',amount:27000, status:'success',sync_status:'synced'},
-      {id:205,transaction_id:'TXN-M205',created_at:iso(yr,3,5),   customer_name:'Luis Torres',    type:'cash_in', amount:38000, status:'success',sync_status:'synced'},
-      {id:206,transaction_id:'TXN-M206',created_at:iso(yr,3,5),   customer_name:'Albert Goopio', type:'cash_out',amount:15000, status:'success',sync_status:'synced'},
-      {id:207,transaction_id:'TXN-M207',created_at:iso(yr,5,20),  customer_name:'Aiza Villadores',type:'cash_in', amount:71000, status:'success',sync_status:'synced'},
-      {id:208,transaction_id:'TXN-M208',created_at:iso(yr,5,20),  customer_name:'Juan dela Cruz', type:'cash_out',amount:32000, status:'success',sync_status:'synced'},
-      {id:209,transaction_id:'TXN-M209',created_at:iso(yr,6,12),  customer_name:'Maria Santos',   type:'cash_in', amount:55000, status:'success',sync_status:'synced'},
-      {id:210,transaction_id:'TXN-M210',created_at:iso(yr,6,12),  customer_name:'Pedro Reyes',    type:'cash_out',amount:23000, status:'success',sync_status:'synced'},
-      {id:211,transaction_id:'TXN-M211',created_at:iso(yr,7,8),   customer_name:'Ana Garcia',     type:'cash_in', amount:83000, status:'success',sync_status:'synced'},
-      {id:212,transaction_id:'TXN-M212',created_at:iso(yr,7,8),   customer_name:'Luis Torres',    type:'cash_out',amount:41000, status:'success',sync_status:'synced'},
-      {id:213,transaction_id:'TXN-M213',created_at:iso(yr,8,22),  customer_name:'Albert Goopio', type:'cash_in', amount:49000, status:'success',sync_status:'synced'},
-      {id:214,transaction_id:'TXN-M214',created_at:iso(yr,8,22),  customer_name:'Aiza Villadores',type:'cash_out',amount:19500, status:'success',sync_status:'synced'},
-      {id:215,transaction_id:'TXN-M215',created_at:iso(yr,9,14),  customer_name:'Juan dela Cruz', type:'cash_in', amount:67000, status:'success',sync_status:'synced'},
-      {id:216,transaction_id:'TXN-M216',created_at:iso(yr,9,14),  customer_name:'Maria Santos',   type:'cash_out',amount:28000, status:'success',sync_status:'synced'},
-      {id:217,transaction_id:'TXN-M217',created_at:iso(yr,10,3),  customer_name:'Pedro Reyes',    type:'cash_in', amount:92000, status:'success',sync_status:'synced'},
-      {id:218,transaction_id:'TXN-M218',created_at:iso(yr,10,3),  customer_name:'Ana Garcia',     type:'cash_out',amount:44000, status:'success',sync_status:'synced'},
-      {id:219,transaction_id:'TXN-M219',created_at:iso(yr,11,18), customer_name:'Luis Torres',    type:'cash_in', amount:115000,status:'success',sync_status:'synced'},
-      {id:220,transaction_id:'TXN-M220',created_at:iso(yr,11,18), customer_name:'Albert Goopio', type:'cash_out',amount:52000, status:'success',sync_status:'synced'},
-      {id:221,transaction_id:'TXN-M221',created_at:iso(yr,12,25), customer_name:'Aiza Villadores',type:'cash_in', amount:138000,status:'success',sync_status:'synced'},
-      {id:222,transaction_id:'TXN-M222',created_at:iso(yr,12,25), customer_name:'Juan dela Cruz', type:'cash_out',amount:63000, status:'success',sync_status:'synced'}
-    ]
   }
 
   // ── CHARTS ──
@@ -409,9 +350,16 @@
     if(searchQ){
       var q = searchQ.toLowerCase()
       r = r.filter(function(x){
-        return ['transaction_id','customer_name','type','status'].some(function(k){
-          return x[k] && String(x[k]).toLowerCase().includes(q)
-        })
+        var typeLbl = x.type === 'cash_in' ? 'cash in' : x.type === 'cash_out' ? 'cash out' : ''
+        var hay = [
+          x.transaction_id,
+          x.customer_name,
+          x.type,
+          typeLbl,
+          x.status,
+          x.amount
+        ].join(' ').toLowerCase()
+        return hay.indexOf(q) !== -1
       })
     }
     return r
@@ -832,6 +780,7 @@
       rows.unshift(tx)
       closeOverlay('addOverlay')
       $('addForm').reset()
+      if($('fType')) $('fType').value = 'cash_out'
       page = 1; renderRows()
       buildDailyChart(rows)
       buildMonthlyChart(rows, new Date().getFullYear())
@@ -866,7 +815,9 @@
   var _confirmWired = false
 
   function closeAllOverlays(){
-    document.querySelectorAll('.overlay.open').forEach(function(el){ el.classList.remove('open') })
+    document.querySelectorAll('.overlay.open').forEach(function(el){
+      el.classList.remove('open', 'closing')
+    })
     document.body.style.overflow = ''
   }
 
@@ -940,13 +891,38 @@
   // ── OVERLAYS ──
   function openOverlay(id){
     var el = $(id); if(!el) return
+    el.classList.remove('closing')
+    // Restart enter animation if reopened quickly.
+    el.classList.remove('open')
+    void el.offsetWidth
     el.classList.add('open')
     document.body.style.overflow = 'hidden'
   }
+  function openAddModal(){
+    var form = $('addForm')
+    if(form) form.reset()
+    var typeEl = $('fType')
+    if(typeEl) typeEl.value = 'cash_out'
+    openOverlay('addOverlay')
+  }
   function closeOverlay(id){
     var el = $(id); if(!el) return
-    el.classList.remove('open')
-    if(!document.querySelector('.overlay.open')) document.body.style.overflow = ''
+    if(!el.classList.contains('open') || el.classList.contains('closing')) return
+    el.classList.add('closing')
+    var done = false
+    function finish(){
+      if(done) return
+      done = true
+      el.classList.remove('open', 'closing')
+      if(!document.querySelector('.overlay.open')) document.body.style.overflow = ''
+    }
+    function onAnimEnd(e){
+      if(e.target !== el) return
+      el.removeEventListener('animationend', onAnimEnd)
+      finish()
+    }
+    el.addEventListener('animationend', onAnimEnd)
+    setTimeout(finish, 220)
   }
   window.closeOverlay = closeOverlay
 
@@ -1277,7 +1253,7 @@
     window.addEventListener('offline', function(){ updateSync(true) })
 
     ;['addTxnBtn','addTxnBtn2','addDailyBtn'].forEach(function(id){
-      var el = $(id); if(el) el.addEventListener('click', function(){ openOverlay('addOverlay') })
+      var el = $(id); if(el) el.addEventListener('click', openAddModal)
     })
 
     var ac = $('addClose'); if(ac) ac.addEventListener('click', function(){ closeOverlay('addOverlay') })
@@ -1300,7 +1276,7 @@
     var rb = $('refreshBtn'); if(rb) rb.addEventListener('click', function(){ loadTransactions(); loadSummary(); toast('Refreshed','success') })
 
     // Customer page events
-    var ctadd = $('ctAddBtn'); if(ctadd) ctadd.addEventListener('click', function(){ openOverlay('addOverlay') })
+    var ctadd = $('ctAddBtn'); if(ctadd) ctadd.addEventListener('click', openAddModal)
     var ctrf = $('ctRefreshBtn'); if(ctrf) ctrf.addEventListener('click', function(){ loadTransactions(); toast('Refreshed','success') })
     var cttf = $('ctTypeFilter'); if(cttf) cttf.addEventListener('change', function(){ cTypeFilter=cttf.value; cPage=1; renderCustomerRows() })
     var ctsf = $('ctStatusFilter'); if(ctsf) ctsf.addEventListener('change', function(){ cStatusFilter=ctsf.value; cPage=1; renderCustomerRows() })
@@ -1308,7 +1284,12 @@
 
     var tf = $('typeFilter'); if(tf) tf.addEventListener('change', function(){ typeFilter=tf.value; page=1; renderRows() })
 
-    var gs = $('globalSearch'); if(gs) gs.addEventListener('input', function(){ searchQ=gs.value.trim(); page=1; renderRows() })
+    function applyTxSearch(q){
+      searchQ = String(q || '').trim()
+      page = 1
+      renderRows()
+    }
+    var txs = $('txSearch'); if(txs) txs.addEventListener('input', function(){ applyTxSearch(txs.value) })
 
     // ── DAILY SALES PAGE ──
     var dsDate = localDate(new Date())

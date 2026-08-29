@@ -21,7 +21,7 @@
   "dependencies": {
     "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^8.1.0",
+    "better-sqlite3": "^13.0.3",
     "chart.js": "^4.4.0",
     "dayjs": "^1.11.9",
     "electron-store": "^8.1.0",
@@ -29,10 +29,10 @@
     "nodemailer": "^8.0.7"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
     "autoprefixer": "^10.4.0",
-    "electron": "^25.0.0",
-    "electron-builder": "^24.7.0",
-    "electron-rebuild": "^3.2.9",
+    "electron": "^44.0.0",
+    "electron-builder": "^26.15.3",
     "png-to-ico": "^3.0.2",
     "postcss": "^8.4.0",
     "tailwindcss": "^4.0.0"

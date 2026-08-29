@@ -19,7 +19,9 @@
   ],
   "win": {
     "target": ["nsis"],
-    "icon": "build/icons/icon.ico"
+    "icon": "build/icons/icon.ico",
+    "signAndEditExecutable": false,
+    "verifyUpdateCodeSignature": false
   },
   "nsis": {
     "oneClick": false,

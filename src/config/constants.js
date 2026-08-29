@@ -1,8 +1,11 @@
 const DEFAULT_API_ENDPOINT = 'https://adminpos.online/api'
 
 function normalizeApiEndpoint (value) {
-  const raw = String(value || '').trim().replace(/\/+$/, '')
+  let raw = String(value || '').trim().replace(/\/+$/, '')
   if (!raw) return DEFAULT_API_ENDPOINT
+  // Default to https when no scheme is provided (avoids accidental plaintext transport
+  // and broken scheme-less URLs). Explicit http:// (e.g. LAN 192.168.x) is preserved.
+  if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`
   return /\/api$/i.test(raw) ? raw : `${raw}/api`
 }
 

@@ -51,7 +51,7 @@
     var t = document.createElement('div')
     t.className = 'toast ' + type
     t.innerHTML = '<div class="toast-icon">' + (ICONS[type] || ICONS.info) + '</div>'
-                + '<div class="toast-txt">' + msg + '</div>'
+                + '<div class="toast-txt">' + esc(msg) + '</div>'
     wrap.appendChild(t)
     setTimeout(function(){
       t.classList.add('out')
@@ -166,6 +166,11 @@
     }
     applyPeriod(period, true)
   }
+
+  ;(function wirePeriodButtons(){
+    var pd = $('periodDaily'); if(pd) pd.addEventListener('click', function(){ window.setPeriod('daily') })
+    var pm = $('periodMonthly'); if(pm) pm.addEventListener('click', function(){ window.setPeriod('monthly') })
+  })()
 
   async function loadSummary(){
     try{
@@ -369,12 +374,12 @@
     var s = (status||'').toLowerCase()
     var cls = s==='success'?'pill-s' : s==='failed'?'pill-f' : s==='conflict'?'pill-c' : 'pill-p'
     var lbl = s ? s.charAt(0).toUpperCase()+s.slice(1) : 'Pending'
-    return '<span class="pill '+cls+'">'+lbl+'</span>'
+    return '<span class="pill '+cls+'">'+esc(lbl)+'</span>'
   }
 
   function typeChip(type){
     var lbl = type==='cash_in'?'Cash In' : type==='cash_out'?'Cash Out' : (type||'—')
-    return '<span class="type-chip">'+lbl+'</span>'
+    return '<span class="type-chip">'+esc(lbl)+'</span>'
   }
 
   function renderRows(){
@@ -391,9 +396,9 @@
     tbody.innerHTML = slice.map(function(r){
       var enc = encodeURIComponent(JSON.stringify(r))
       return '<tr>'
-        + '<td><strong>'+(r.transaction_id||'—')+'</strong></td>'
+        + '<td><strong>'+esc(r.transaction_id||'—')+'</strong></td>'
         + '<td>'+fmtDate(r.created_at)+'</td>'
-        + '<td>'+(r.customer_name||'Walk-in')+'</td>'
+        + '<td>'+esc(r.customer_name||'Walk-in')+'</td>'
         + '<td>'+typeChip(r.type)+'</td>'
         + '<td><strong>&#8369;'+money(r.amount)+'</strong></td>'
         + '<td>'+statusPill(r.status)+'</td>'
@@ -460,9 +465,9 @@
     tbody.innerHTML = slice.map(function(r){
       var enc = encodeURIComponent(JSON.stringify(r))
       return '<tr>'
-        + '<td><strong>'+(r.transaction_id||'—')+'</strong></td>'
+        + '<td><strong>'+esc(r.transaction_id||'—')+'</strong></td>'
         + '<td>'+fmtDate(r.created_at)+'</td>'
-        + '<td>'+(r.customer_name||'Walk-in')+'</td>'
+        + '<td>'+esc(r.customer_name||'Walk-in')+'</td>'
         + '<td>'+typeChip(r.type)+'</td>'
         + '<td><strong>&#8369;'+money(r.amount)+'</strong></td>'
         + '<td>'+statusPill(r.status)+'</td>'
@@ -633,14 +638,14 @@
     var body = $('viewBody'); if(!body) return
     var isPending = (r.status||'').toLowerCase() === 'pending'
     body.innerHTML = '<div class="det-grid">'
-      + '<div class="det-item"><div class="det-lbl">Reference Number</div><div class="det-val">'+(r.transaction_id||'—')+'</div></div>'
+      + '<div class="det-item"><div class="det-lbl">Reference Number</div><div class="det-val">'+esc(r.transaction_id||'—')+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Date &amp; Time</div><div class="det-val">'+fmtDateLong(r.created_at)+'</div></div>'
-      + '<div class="det-item"><div class="det-lbl">Customer</div><div class="det-val">'+(r.customer_name||'Walk-in')+'</div></div>'
+      + '<div class="det-item"><div class="det-lbl">Customer</div><div class="det-val">'+esc(r.customer_name||'Walk-in')+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Type</div><div class="det-val">'+typeChip(r.type)+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Amount</div><div class="det-val" style="font-size:20px;font-weight:700;color:#4C6EF5">&#8369;'+money(r.amount)+'</div></div>'
       + '<div class="det-item"><div class="det-lbl">Service Fee</div><div class="det-val" style="font-size:16px;font-weight:600;color:#F59E0B">&#8369;'+money(r.service_fee||0)+'<span style="font-size:11px;color:#9CA3AF;font-weight:400;margin-left:6px">not in totals</span></div></div>'
       + '<div class="det-item"><div class="det-lbl">Status</div><div class="det-val">'+statusPill(r.status)+'</div></div>'
-      + '<div class="det-item"><div class="det-lbl">Sync Status</div><div class="det-val">'+(r.sync_status||'—')+'</div></div>'
+      + '<div class="det-item"><div class="det-lbl">Sync Status</div><div class="det-val">'+esc(r.sync_status||'—')+'</div></div>'
       + '</div>'
         + '<div class="modal-ftr"><button class="btn btn-primary" id="saveTxnPdfBtn">Save as PDF</button></div>'
       + (isPending
@@ -1334,9 +1339,9 @@
           var sf = Number(r.service_fee)||0
           var enc = encodeURIComponent(JSON.stringify(r))
           return '<tr>'+
-            '<td><span class="txn-id">'+(r.transaction_id||'—')+'</span></td>'+
+            '<td><span class="txn-id">'+esc(r.transaction_id||'—')+'</span></td>'+
             '<td style="color:#64748b;font-size:12px;">'+ts+'</td>'+
-            '<td>'+(r.customer_name||'Walk-in')+'</td>'+
+            '<td>'+esc(r.customer_name||'Walk-in')+'</td>'+
             '<td><span style="color:'+typeColor+';font-weight:600;font-size:12px;">'+typeLbl+'</span></td>'+
             '<td style="font-weight:600;">₱'+money(Number(r.amount)||0)+'</td>'+
             '<td style="color:#F59E0B;font-size:12px;">'+(sf>0?'₱'+money(sf):'—')+'</td>'+
@@ -1528,9 +1533,9 @@
           var sf = Number(r.service_fee)||0
           var enc = encodeURIComponent(JSON.stringify(r))
           return '<tr>'+
-            '<td><span class="txn-id">'+(r.transaction_id||'—')+'</span></td>'+
+            '<td><span class="txn-id">'+esc(r.transaction_id||'—')+'</span></td>'+
             '<td style="color:#64748b;font-size:12px;">'+dateLbl+(ts?' · '+ts:'')+'</td>'+
-            '<td>'+(r.customer_name||'Walk-in')+'</td>'+
+            '<td>'+esc(r.customer_name||'Walk-in')+'</td>'+
             '<td><span style="color:'+typeColor+';font-weight:600;font-size:12px;">'+typeLbl+'</span></td>'+
             '<td style="font-weight:600;">₱'+money(Number(r.amount)||0)+'</td>'+
             '<td style="color:#F59E0B;font-size:12px;">'+(sf>0?'₱'+money(sf):'—')+'</td>'+
@@ -1611,6 +1616,7 @@
 
     function csvEscape(v){
       v = v == null ? '' : String(v)
+      if (/^[=+\-@\t\r]/.test(v)) v = "'" + v
       return '"' + v.replace(/"/g, '""') + '"'
     }
 
@@ -1702,7 +1708,7 @@
       var body = $('reportBody')
       if(body){
         body.innerHTML = reportRows.length ? reportRows.map(function(r){
-          return '<tr><td><strong>'+(r.transaction_id||'—')+'</strong></td><td>'+fmtDate(r.created_at)+'</td><td>'+(r.customer_name||'Walk-in')+'</td><td>'+typeChip(r.type)+'</td><td><strong>₱'+money(r.amount)+'</strong></td><td>₱'+money(r.service_fee||0)+'</td><td>'+statusPill(r.status)+'</td></tr>'
+          return '<tr><td><strong>'+esc(r.transaction_id||'—')+'</strong></td><td>'+fmtDate(r.created_at)+'</td><td>'+esc(r.customer_name||'Walk-in')+'</td><td>'+typeChip(r.type)+'</td><td><strong>₱'+money(r.amount)+'</strong></td><td>₱'+money(r.service_fee||0)+'</td><td>'+statusPill(r.status)+'</td></tr>'
         }).join('') : '<tr><td colspan="7" style="text-align:center;padding:36px;color:#94a3b8;">No records for this report</td></tr>'
       }
 
@@ -1719,7 +1725,7 @@
       var email = emailEl ? emailEl.value.trim() : ''
       if(!email){ toast('Enter an email address first','error'); if(emailEl) emailEl.focus(); return }
       var s = getSettings()
-      if(!s.smtpHost || !s.smtpUser || !s.smtpPass){
+      if(!s.smtpHost || !s.smtpUser){
         toast('Complete SMTP settings first','error')
         if(window.showPage) window.showPage('settings')
         return
@@ -2209,6 +2215,19 @@
 
     function renderSettingsPage(){
       var s = getSettings()
+      // One-time migration: move any legacy plaintext SMTP password to encrypted main store.
+      // Clear the local copy only after main confirms it was stored (never lose it on failure).
+      if (s.smtpPass && window.electronAPI && window.electronAPI.smtp && window.electronAPI.smtp.setPassword) {
+        window.electronAPI.smtp.setPassword(s.smtpPass).then(function(r){
+          if (r && r.success) { try { var cur = getSettings(); cur.smtpPass = ''; saveSettingsObj(cur) } catch (e) {} }
+        }).catch(function(){})
+      }
+      if (window.electronAPI && window.electronAPI.smtp && window.electronAPI.smtp.hasPassword) {
+        window.electronAPI.smtp.hasPassword().then(function(r){
+          var pel = $('setSmtpPass')
+          if (pel && r && r.hasPassword) pel.setAttribute('placeholder', 'Saved — leave blank to keep')
+        }).catch(function(){})
+      }
       var currentUser = getCurrentUser()
       var admin = isAdminUser(currentUser)
       var display = getDisplayProfile(s, currentUser)
@@ -2305,6 +2324,16 @@
 
     function saveSettings(showToast){
       var s = collectSettings()
+      // Keep SMTP password out of renderer localStorage — store it encrypted in main.
+      // Only clear the local copy AFTER main confirms success, so a build without the
+      // smtp bridge (or a failed IPC) never loses the password.
+      try {
+        if (window.electronAPI && window.electronAPI.smtp && window.electronAPI.smtp.setPassword && s.smtpPass) {
+          window.electronAPI.smtp.setPassword(s.smtpPass).then(function(r){
+            if (r && r.success) { try { var cur = getSettings(); cur.smtpPass = ''; saveSettingsObj(cur) } catch (e) {} }
+          }).catch(function(){})
+        }
+      } catch (e) {}
       saveSettingsObj(s)
       applySettings()
       saveCloudServerSettings(false)
@@ -2392,7 +2421,7 @@
         list.innerHTML = items.length ? items.map(function(it){
           var meta = it.time ? '<small>'+new Date(it.time).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</small>' : ''
           var snap = it.snapshot ? encodeURIComponent(JSON.stringify(it.snapshot)) : ''
-          return '<div class="notif-item" data-target="customers" data-tx-id="'+(it.txId||'')+'" data-transaction-id="'+(it.transactionId||'')+'" data-snapshot="'+snap+'"><div class="notif-ico '+it.kind+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="notif-copy"><strong>'+it.title+'</strong><span>'+it.text+'</span>'+meta+'</div></div>'
+          return '<div class="notif-item" data-target="customers" data-tx-id="'+esc(it.txId||'')+'" data-transaction-id="'+esc(it.transactionId||'')+'" data-snapshot="'+snap+'"><div class="notif-ico '+it.kind+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="notif-copy"><strong>'+esc(it.title)+'</strong><span>'+esc(it.text)+'</span>'+meta+'</div></div>'
         }).join('') : '<div class="drop-empty">No notifications</div>'
         list.querySelectorAll('.notif-item').forEach(function(item){ item.addEventListener('click', function(){
           closeDropdowns()

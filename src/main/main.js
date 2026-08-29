@@ -58,6 +58,13 @@ function createWindow () {
     if (mainWindow === win) mainWindow = null
   })
 
+  // Harden against navigation/window hijack (e.g. from injected content).
+  // Deny all popups and block navigation to anything other than local files.
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  win.webContents.on('will-navigate', (event, url) => {
+    if (!/^file:\/\//i.test(url)) event.preventDefault()
+  })
+
   win.loadFile(path.join(__dirname, '..', 'renderer', 'login.html'))
   win.once('ready-to-show', () => {
     // show window (do not auto-open DevTools in normal runs)

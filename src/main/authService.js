@@ -7,6 +7,34 @@ const { SESSION_MIN_TTL_MS } = require('../config/constants')
 
 const sessionStore = new Store({ name: 'gcashpos-session' })
 
+// Encrypt sensitive secrets (bearer tokens) at rest using the OS keystore.
+// Backward-compatible: legacy plaintext values (no prefix) are read as-is,
+// and if OS encryption is unavailable we fall back to plaintext so login never breaks.
+const { safeStorage } = require('electron')
+const SECRET_PREFIX = 'enc:v1:'
+
+function encryptSecret (value) {
+  const str = String(value == null ? '' : value)
+  if (!str) return str
+  try {
+    if (safeStorage && safeStorage.isEncryptionAvailable()) {
+      return SECRET_PREFIX + safeStorage.encryptString(str).toString('base64')
+    }
+  } catch (e) {}
+  return str
+}
+
+function decryptSecret (stored) {
+  if (stored == null) return null
+  const str = String(stored)
+  if (str.indexOf(SECRET_PREFIX) !== 0) return str
+  try {
+    return safeStorage.decryptString(Buffer.from(str.slice(SECRET_PREFIX.length), 'base64'))
+  } catch (e) {
+    return null
+  }
+}
+
 let onSessionRevoked = null
 let revokingSession = false
 let loginChain = Promise.resolve()
@@ -18,14 +46,14 @@ function setSessionRevokedHandler (fn) {
 }
 
 function getStoredApiToken () {
-  return sessionStore.get('apiToken') || null
+  return decryptSecret(sessionStore.get('apiToken')) || null
 }
 
 function setCloudSyncCredentials (ownerUsername, token) {
   const owner = String(ownerUsername || '').trim()
   if (!owner || !token) return
   sessionStore.set('cloudSyncOwner', owner)
-  sessionStore.set('cloudSyncToken', token)
+  sessionStore.set('cloudSyncToken', encryptSecret(token))
 }
 
 function clearCloudSyncCredentials () {
@@ -37,7 +65,7 @@ function getCloudSyncTokenForOwner (ownerUsername) {
   const owner = String(ownerUsername || '').trim()
   if (!owner) return null
   const syncOwner = String(sessionStore.get('cloudSyncOwner') || '').trim()
-  const syncToken = sessionStore.get('cloudSyncToken') || null
+  const syncToken = decryptSecret(sessionStore.get('cloudSyncToken')) || null
   if (!syncToken || !syncOwner) return null
   if (syncOwner !== owner) return null
   return syncToken
@@ -489,7 +517,7 @@ async function login (username, password, role, options = {}) {
         return { success: false, error: 'Login superseded. Please try again.' }
       }
 
-      sessionStore.set('apiToken', token)
+      sessionStore.set('apiToken', encryptSecret(token))
       setCloudSyncCredentials(user.username, token)
       clearSoftDegradedFlag()
       sessionStore.set('currentUser', user)
@@ -562,7 +590,7 @@ async function login (username, password, role, options = {}) {
 
 async function logout () {
   beginAuthBusy(10000)
-  const token = sessionStore.get('apiToken') || presenceService.getToken() || getCloudSyncTokenForOwner(getOwnerUsername())
+  const token = getStoredApiToken() || presenceService.getToken() || getCloudSyncTokenForOwner(getOwnerUsername())
   const isAdmin = ((getCurrentUser() || {}).role || '').toLowerCase() === 'admin'
   try {
     if (token && isAdmin) {
@@ -795,7 +823,7 @@ async function initAuth () {
         : (savedUser.owner_username || null)
       const syncToken = getCloudSyncTokenForOwner(owner)
       if ((savedUser.role || '').toLowerCase() === 'admin' && syncToken) {
-        sessionStore.set('apiToken', syncToken)
+        sessionStore.set('apiToken', encryptSecret(syncToken))
         try { await presenceService.start(syncToken) } catch (e) {}
       } else {
         sessionStore.delete('apiToken')
@@ -839,5 +867,7 @@ module.exports = {
   isCloudSoftDegraded,
   clearSoftDegradedFlag,
   getRememberedLogin,
-  setRememberMe
+  setRememberMe,
+  encryptSecret,
+  decryptSecret
 }

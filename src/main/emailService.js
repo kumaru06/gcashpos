@@ -40,7 +40,10 @@ function buildReportText (report = {}) {
 }
 
 function csvEscape (value) {
-  return `"${String(value == null ? '' : value).replace(/"/g, '""')}"`
+  let str = String(value == null ? '' : value)
+  // Neutralize spreadsheet formula injection (leading =, +, -, @, tab, CR).
+  if (/^[=+\-@\t\r]/.test(str)) str = `'${str}`
+  return `"${str.replace(/"/g, '""')}"`
 }
 
 function buildReportCsv (report = {}) {

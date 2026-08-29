@@ -25,6 +25,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   email: {
     sendReport: (payload) => ipcRenderer.invoke('email:send-report', payload)
   },
+  smtp: {
+    setPassword: (password) => ipcRenderer.invoke('smtp:setPassword', password),
+    hasPassword: () => ipcRenderer.invoke('smtp:hasPassword')
+  },
   staff: {
     list: (opts) => ipcRenderer.invoke('staff:list', opts),
     create: (payload) => ipcRenderer.invoke('staff:create', payload),

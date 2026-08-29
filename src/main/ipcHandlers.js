@@ -54,7 +54,7 @@ function registerIpcHandlers () {
     'db:get-summary', 'db:get-transactions', 'db:add-transaction', 'db:update-transaction', 'db:delete-transaction', 'db:delete-test-data',
     'staff:list', 'staff:create', 'staff:update', 'staff:delete',
     'sync:status', 'sync:force', 'connectivity:check',
-    'email:send-report', 'pdf:save-transaction',
+    'email:send-report', 'pdf:save-transaction', 'smtp:setPassword', 'smtp:hasPassword',
     'settings:get', 'settings:set',
     'updater:check', 'updater:download', 'updater:install', 'updater:getVersion'
   ]
@@ -64,13 +64,13 @@ function registerIpcHandlers () {
 
   ipcMain.handle('auth:login', async (event, { username, password, role, rememberMe }) => {
     try {
-      console.log('auth:login attempt for', username, 'role', role)
+      console.log('auth:login attempt, role', role)
       const result = await authService.login(username, password, role, { rememberMe: !!rememberMe })
       if (!result.success) {
-        console.log('auth:login failed for', username, result.error)
+        console.log('auth:login failed:', result.error)
         return result
       }
-      console.log('auth:login success for', username, result.offline ? '(offline cache)' : '(cloud)')
+      console.log('auth:login success', result.offline ? '(offline cache)' : '(cloud)')
       return result
     } catch (err) {
       console.error('auth:login error', err)
@@ -227,6 +227,16 @@ function registerIpcHandlers () {
   ipcMain.handle('email:send-report', async (event, payload) => {
     try {
       authService.requireAdmin()
+      payload = payload || {}
+      payload.smtp = payload.smtp || {}
+      // Password is kept in encrypted main-process storage, not the renderer.
+      if (!payload.smtp.pass) {
+        try {
+          const secureStore = new (require('electron-store'))({ name: 'gcashpos-settings' })
+          const storedPass = authService.decryptSecret(secureStore.get('smtpPassEnc'))
+          if (storedPass) payload.smtp.pass = storedPass
+        } catch (e) {}
+      }
       return await emailService.sendReportEmail(payload)
     } catch (err) {
       console.error('email:send-report error', err)
@@ -254,6 +264,18 @@ function registerIpcHandlers () {
     }
     settingsStore.set(key, value)
     return { success: true }
+  })
+
+  ipcMain.handle('smtp:setPassword', async (event, password) => {
+    authService.requireAdmin()
+    const pass = String(password || '')
+    if (!pass) { settingsStore.delete('smtpPassEnc'); return { success: true, cleared: true } }
+    settingsStore.set('smtpPassEnc', authService.encryptSecret(pass))
+    return { success: true }
+  })
+  ipcMain.handle('smtp:hasPassword', async () => {
+    authService.requireAdmin()
+    return { hasPassword: !!settingsStore.get('smtpPassEnc') }
   })
 
   const updateService = require('./updateService')

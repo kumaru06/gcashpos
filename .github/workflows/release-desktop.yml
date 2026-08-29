@@ -35,6 +35,14 @@ jobs:
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
 
+      - name: Create and push version tag
+        run: |
+          $ver = node -p "require('./package.json').version"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v$ver"
+          git push origin "v$ver"
+
       - name: Install dependencies
         run: npm ci
 
